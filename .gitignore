@@ -5,3 +5,4 @@ tmp/
 
 work*.cf
 _AUTOGEN
+__pycache__
