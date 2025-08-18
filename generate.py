@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import yaml
+import sys
 import os
 import jinja2
+
+from pathlib import Path
 
 from read_spreadsheet import get_spec_data
 
@@ -20,38 +23,44 @@ def map_extension(ext):
 
     raise Exception(f"Found file extension {ext} not mapped to an output folder")
 
-template_dir = "./templates"
+scr_dir = Path(__file__).parent.resolve()
+template_dir = scr_dir / "templates"
+
 if __name__ == '__main__':
 
     # Load project information
-    with open("project.yaml", 'r') as f:
-        project_yaml = yaml.safe_load(f)
-        validate_yaml(project_yaml)
-        project_name, project = next(iter(project_yaml.items()))
+    project_yaml = yaml.safe_load(Path("project.yaml").read_text())
+    validate_yaml(project_yaml)
+    project_name, project = next(iter(project_yaml.items()))
 
     data = get_spec_data(project['spec'])
 
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader("."),
-                            trim_blocks=True)
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(str(template_dir)),
+        trim_blocks=True)
 
-    for filename in os.listdir(template_dir):
+    for path in template_dir.iterdir():
 
-        if "jinja" in filename or "j2" in filename or "bits" in filename:
+        if not path.is_file():
+            continue
+        if path.suffix in ["jinja", "j2"]:
             continue
 
-        template = env.get_template(f"{template_dir}/{filename}")
-        folder = f"src/{map_extension(filename.split('.')[-1])}/_AUTOGEN"
-        os.makedirs(folder, exist_ok=True)
+        template = env.get_template(path.name)
 
-        new_filename = filename.replace(".", f"_{project_name}.")
+        folder = Path("src") / map_extension(path.suffix.lstrip(".")) / "_AUTOGEN"
+        folder.mkdir(parents=True, exist_ok=True)
+
+        new_filename = path.stem + f"_{project_name}" + path.suffix
+        new_path = folder / new_filename
+
         print(f"Generating template {new_filename} in {folder}")
 
-        with open(f"{folder}/{new_filename}", 'w') as f:
-            f.write(
-                template.render(
-                    file_name=new_filename,
-                    project_name_short=project_name,
-                    **project['metadata'],
-                    **data
-                )
+        new_path.write_text(
+            template.render(
+                file_name=new_filename,
+                project_name_short=project_name,
+                **project['metadata'],
+                **data
             )
+        )

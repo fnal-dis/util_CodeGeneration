@@ -1,4 +1,4 @@
-{% extends "templates/bits/header.vhd" %}
+{% extends "bits/header.vhd" %}
 
 {#
 {% macro select_status %}
