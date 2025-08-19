@@ -2,9 +2,9 @@
 from pandas import read_excel
 import re
 
-def get_spec_data(filename, **kwargs):
+def get_spec_data(filename, ports_sheet, **kwargs):
 
-    data_ports = read_excel(filename, sheet_name="Artix IO Banks", dtype=str, **kwargs)
+    data_ports = read_excel(filename, sheet_name=ports_sheet, dtype=str, **kwargs)
     data_ports.iloc[:,0:3] = data_ports.iloc[:,0:3].ffill()
 
     # Skip ports marked with "No Connect"
@@ -51,7 +51,6 @@ def get_spec_data(filename, **kwargs):
     # Remove _P from diff port (templates will add it back)
     mask = differential_ports["Net Name"].str.endswith("_P") * (differential_ports["Differential"] == True)
     differential_ports.loc[mask, "Net Name"] = differential_ports.loc[mask, "Net Name"].str.replace("_P", "")
-
 
     # Data struct to be passed to template engine
     data = dict(ports=data_ports,

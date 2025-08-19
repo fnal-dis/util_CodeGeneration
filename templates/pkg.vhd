@@ -10,7 +10,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-package pkg_{{ project_name_short }} is
+package pkg_{{ project_name }} is
 
   -- <Base Types>
   subtype t_{{ project_name_short }}_BaseType is std_logic;
@@ -38,6 +38,6 @@ package pkg_{{ project_name_short }} is
 {% endfor %}
   end record;
 
-end package pkg_{{ project_name_short }};
+end package pkg_{{ project_name }};
 
 {% endblock %}
