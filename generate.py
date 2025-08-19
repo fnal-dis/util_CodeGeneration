@@ -33,7 +33,9 @@ if __name__ == '__main__':
     validate_yaml(project_yaml)
     project_name, project = next(iter(project_yaml.items()))
 
-    data = get_spec_data(project['spec'])
+    data = get_spec_data(
+        filename=project['spec'],
+        ports_sheet=project['ports_sheet'])
 
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(str(template_dir)),

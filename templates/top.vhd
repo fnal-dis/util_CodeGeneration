@@ -9,6 +9,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.pkg_{{ project_name_short }}.t_{{ project_name_short }};
 
+{% block extra_libraries %}
+{% endblock  %}
+
 library unisim;
 use unisim.vcomponents.all;
 
@@ -42,6 +45,9 @@ begin
       if_{{ project_name_short }} => sig_{{ project_name_short }}
     );
 
+
+  {% block extra_entities %}
+  {% endblock %}
 
 -- Assignments to main record
 
