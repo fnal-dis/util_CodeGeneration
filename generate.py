@@ -72,29 +72,30 @@ if __name__ == '__main__':
 
     # Get all project specific templates (terminated in .j2)
     # Templates matching those in the common core will be overwritten
-    for path in project_template_dir.iterdir():
+    if project_template.exists():
+        for path in project_template_dir.iterdir():
 
-        if not path.is_file():
-            continue
-        if path.suffix not in [".jinja", ".j2"]:
-            continue
-        if len(path.suffixes) < 2:
-            continue
+            if not path.is_file():
+                continue
+            if path.suffix not in [".jinja", ".j2"]:
+                continue
+            if len(path.suffixes) < 2:
+                continue
 
-        print(path.name)
-        template = env.get_template(path.name)
-        print(f"Found project-specific template {template.name}")
+            print(path.name)
+            template = env.get_template(path.name)
+            print(f"Found project-specific template {template.name}")
 
-        ext = path.suffixes[0].lstrip(".")
-        folder = Path("src") / map_extension(ext) / "_AUTOGEN"
-        folder.mkdir(parents=True, exist_ok=True)
+            ext = path.suffixes[0].lstrip(".")
+            folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+            folder.mkdir(parents=True, exist_ok=True)
 
-        new_filename = path.with_suffix('').stem + f"_{project_name}." + ext
-        new_path = folder / new_filename
+            new_filename = path.with_suffix('').stem + f"_{project_name}." + ext
+            new_path = folder / new_filename
 
-        print(f"Generating template {new_filename} in {folder}")
+            print(f"Generating template {new_filename} in {folder}")
 
-        templates[template.name] = (template, new_path)
+            templates[template.name] = (template, new_path)
 
 
     for template, new_path in templates.values():
