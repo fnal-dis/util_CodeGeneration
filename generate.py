@@ -101,7 +101,7 @@ if __name__ == '__main__':
         new_path.write_text(
             template.render(
                 file_name=new_filename,
-                project_name_short=project_name,
+                project_name=project_name,
                 **project['metadata'],
                 **data
             )

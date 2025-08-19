@@ -8,10 +8,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+{% if vendor == 'Xilinx' %}
 library unisim;
 use unisim.vcomponents.all;
+{% endif %}
 
-use work.pkg_{{ project_name_short }}.t_{{ project_name_short }};
+use work.pkg_{{ project_name }}.t_{{ project_name_short }};
 
 -- Extra libraries
 {% block extra_libraries %}
@@ -52,9 +54,10 @@ architecture rtl of top is
 
 begin
 
-
   main : entity work.main
     port map(
+{% block extra_main_portmap %}
+{% endblock %}
       if_{{ project_name_short }} => sig_{{ project_name_short }}
     );
 
