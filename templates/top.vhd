@@ -7,22 +7,31 @@
 {% block content %}
 library ieee;
 use ieee.std_logic_1164.all;
-use work.pkg_{{ project_name_short }}.t_{{ project_name_short }};
-
-{% block extra_libraries %}
-{% endblock  %}
 
 library unisim;
 use unisim.vcomponents.all;
 
+use work.pkg_{{ project_name_short }}.t_{{ project_name_short }};
+
+-- Extra libraries
+{% block extra_libraries %}
+{% endblock  %}
+
 entity top is
 
 port(
+
+  -- Extra ports
+{% block extra_ports %}
+{% endblock %}
+
+    -- Differential ports
 {% for idx, port in diff_ports.iterrows() %}
   io_{{ (port['Net Name'] ~ '_p').ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic;
   io_{{ (port['Net Name'] ~ '_n').ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic;
 {% endfor %}
 
+    -- Single ended ports
 {% for idx, port in single_ended_ports.iterrows() %}
   io_{{ port['Net Name'].ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic
   {%- if idx < (single_ended_ports | length) - 1 %};    {% else %}     {% endif -%}
@@ -37,6 +46,10 @@ architecture rtl of top is
   -- Main container for project's specification signals
   signal sig_{{ project_name_short }} : t_{{ project_name_short }};
 
+  -- Extra architecture declarations
+{% block extra_architecture_declaration %}
+{% endblock %}
+
 begin
 
 
@@ -46,8 +59,9 @@ begin
     );
 
 
-  {% block extra_entities %}
-  {% endblock %}
+  -- Extra architecture
+{% block extra_architecture %}
+{% endblock %}
 
 -- Assignments to main record
 

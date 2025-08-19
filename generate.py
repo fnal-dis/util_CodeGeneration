@@ -25,6 +25,7 @@ def map_extension(ext):
 
 scr_dir = Path(__file__).parent.resolve()
 template_dir = scr_dir / "templates"
+project_template_dir = scr_dir / "../templates"
 
 if __name__ == '__main__':
 
@@ -38,26 +39,65 @@ if __name__ == '__main__':
         ports_sheet=project['ports_sheet'])
 
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(str(template_dir)),
+        loader=jinja2.ChoiceLoader([
+                jinja2.FileSystemLoader(str(template_dir)),
+                jinja2.FileSystemLoader(str(project_template_dir))
+            ]),
         trim_blocks=True)
 
+    templates = {}
+    # Get all default templates to render
     for path in template_dir.iterdir():
 
         if not path.is_file():
             continue
-        if path.suffix in ["jinja", "j2"]:
+        if path.suffix in [".jinja", ".j2"]:
+            print(path + " skipped")
             continue
 
+        print(path.name)
         template = env.get_template(path.name)
+        print(f"Found template {template.name}")
 
-        folder = Path("src") / map_extension(path.suffix.lstrip(".")) / "_AUTOGEN"
+        ext = path.suffix.lstrip(".")
+        folder = Path("src") / map_extension(ext) / "_AUTOGEN"
         folder.mkdir(parents=True, exist_ok=True)
 
-        new_filename = path.stem + f"_{project_name}" + path.suffix
+        new_filename = path.stem + f"_{project_name}." + ext
         new_path = folder / new_filename
 
         print(f"Generating template {new_filename} in {folder}")
 
+        templates[template.name] = (template, new_path)
+
+    # Get all project specific templates (terminated in .j2)
+    # Templates matching those in the common core will be overwritten
+    for path in project_template_dir.iterdir():
+
+        if not path.is_file():
+            continue
+        if path.suffix not in [".jinja", ".j2"]:
+            continue
+        if len(path.suffixes) < 2:
+            continue
+
+        print(path.name)
+        template = env.get_template(path.name)
+        print(f"Found project-specific template {template.name}")
+
+        ext = path.suffixes[0].lstrip(".")
+        folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+        folder.mkdir(parents=True, exist_ok=True)
+
+        new_filename = path.with_suffix('').stem + f"_{project_name}." + ext
+        new_path = folder / new_filename
+
+        print(f"Generating template {new_filename} in {folder}")
+
+        templates[template.name] = (template, new_path)
+
+
+    for template, new_path in templates.values():
         new_path.write_text(
             template.render(
                 file_name=new_filename,
