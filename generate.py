@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     # Get all project specific templates (terminated in .j2)
     # Templates matching those in the common core will be overwritten
-    if project_template.exists():
+    if project_template_dir.exists():
         for path in project_template_dir.iterdir():
 
             if not path.is_file():
