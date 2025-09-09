@@ -36,7 +36,9 @@ if __name__ == '__main__':
 
     data = get_spec_data(
         filename=project['spec'],
-        ports_sheet=project['ports_sheet'])
+        ports_sheet=project['ports_sheet'],
+        project_name_short=project['metadata']['project_name_short']
+    )
 
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader([
