@@ -2,7 +2,7 @@
 from pandas import read_excel
 import re
 
-def get_spec_data(filename, ports_sheet, **kwargs):
+def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
 
     data_ports = read_excel(filename, sheet_name=ports_sheet, dtype=str, **kwargs)
     data_ports.iloc[:,0:3] = data_ports.iloc[:,0:3].ffill()
@@ -38,6 +38,21 @@ def get_spec_data(filename, ports_sheet, **kwargs):
 
     for col in columns_to_modify:
         data_ports[col] = data_ports[col].apply(foo1).apply(foo2)
+
+    # Create names used for variables
+    data_ports["var_io"] =          \
+        "io_"                     + \
+        data_ports["Net Name"]
+
+    data_ports["var_sig"] =         \
+        "sig_"                    + \
+        project_name_short        + \
+        ".if_"                    + \
+        data_ports["Bundle Name"] + \
+        "."                       + \
+        data_ports["Net Name"]    + \
+        "_"                       + \
+        data_ports["DIR"].apply(str.lower)
 
 
     # Split single-ended vs differential ports

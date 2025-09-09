@@ -70,49 +70,29 @@ begin
 
 -- Inputs
 {% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="IN"].iterrows() %}
-{% set name=port['Net Name'] %}
-{% set bundle=port['Bundle Name'] %}
-{% set dir=port['DIR'].lower() %}
-{% set var_io="io_"~name %}
-{% set var_sig="sig_"~project_name_short~".if_"~bundle~"."~name~"_"~dir %}
-  {{ var_sig.ljust(60) }} <= {{ var_io }};
+  {{ port["var_sig"].ljust(60) }} <= {{ port["var_io"] }};
 {% endfor %}
 
 -- Outputs
 {% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="OUT"].iterrows() %}
 {% if port['Differential'] != True %}
-{% set name=port['Net Name'] %}
-{% set bundle=port['Bundle Name'] %}
-{% set dir=port['DIR'].lower() %}
-{% set var_io="io_"~name %}
-{% set var_sig="sig_"~project_name_short~".if_"~bundle~"."~name~"_"~dir %}
-  {{ var_io.ljust(60) }} <= {{ var_sig }};
+  {{ port["var_io"].ljust(60) }} <= {{ port["var_sig"] }};
 {% endif %}
 {% endfor %}
 
 -- Inouts
 {% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="INOUT"].iterrows() %}
-{% set name=port['Net Name'] %}
-{% set bundle=port['Bundle Name'] %}
-{% set dir=port['DIR'].lower() %}
-{% set var_io="io_"~name %}
-{% set var_sig="sig_"~project_name_short~".if_"~bundle~"."~name~"_"~dir %}
-  {{ var_io.ljust(60) }} <= {{ var_sig }};
+  {{ port["var_io"].ljust(60) }} <= {{ port["var_sig"] }};
 {% endfor %}
 
 -- Differential input buffers
 {% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
 {% if port['Differential'] == True %}
-{% set name=port['Net Name'] %}
-{% set bundle=port['Bundle Name'] %}
-{% set dir=port['DIR'].lower() %}
-{% set var_io="io_"~name %}
-{% set var_sig="sig_"~project_name_short~".if_"~bundle~"."~name~"_"~dir %}
 ibuf_{{ name }} : IBUFDS
    port map(
-     o  => {{ var_sig }},
-     i  => {{ var_io }}_p,
-     ib => {{ var_io }}_n
+     o  => {{ port["var_sig"] }},
+     i  => {{ port["var_io"] }}_p,
+     ib => {{ port["var_io"] }}_n
   );
 {% endif %}
 {% endfor %}
@@ -121,16 +101,11 @@ ibuf_{{ name }} : IBUFDS
 
 {% for idx, port in diff_ports[diff_ports["DIR"] == "OUT"].iterrows() %}
 {% if port['Differential'] == True %}
-{% set name=port['Net Name'] %}
-{% set bundle=port['Bundle Name'] %}
-{% set dir=port['DIR'].lower() %}
-{% set var_io="io_"~name %}
-{% set var_sig="sig_"~project_name_short~".if_"~bundle~"."~name~"_"~dir %}
 obuf_{{ name }} : OBUFDS
    port map(
-     i  => {{ var_sig }},
-     o  => {{ var_io }}_p,
-     ob => {{ var_io }}_n
+     i  => {{ port["var_sig"] }},
+     o  => {{ port["var_io"] }}_p,
+     ob => {{ port["var_io"] }}_n
   );
 {% endif %}
 {% endfor %}
