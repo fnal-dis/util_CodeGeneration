@@ -88,7 +88,7 @@ begin
 -- Differential input buffers
 {% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
 {% if port['Differential'] == True %}
-ibuf_{{ name }} : IBUFDS
+ibuf_{{ port['Net Name'] }} : IBUFDS
    port map(
      o  => {{ port["var_sig"] }},
      i  => {{ port["var_io"] }}_p,
@@ -101,7 +101,7 @@ ibuf_{{ name }} : IBUFDS
 
 {% for idx, port in diff_ports[diff_ports["DIR"] == "OUT"].iterrows() %}
 {% if port['Differential'] == True %}
-obuf_{{ name }} : OBUFDS
+obuf_{{ port['Net Name'] }} : OBUFDS
    port map(
      i  => {{ port["var_sig"] }},
      o  => {{ port["var_io"] }}_p,
