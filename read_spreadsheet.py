@@ -39,10 +39,13 @@ def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
     for col in columns_to_modify:
         data_ports[col] = data_ports[col].apply(foo1).apply(foo2)
 
+
+    name = data_ports["Net Name"].apply(lambda x: x.strip("_P").strip("_N"))
+
     # Create names used for variables
     data_ports["var_io"] =          \
         "io_"                     + \
-        data_ports["Net Name"]
+        name
 
     data_ports["var_sig"] =         \
         "sig_"                    + \
@@ -50,7 +53,7 @@ def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
         ".if_"                    + \
         data_ports["Bundle Name"] + \
         "."                       + \
-        data_ports["Net Name"]    + \
+        name                      + \
         "_"                       + \
         data_ports["DIR"].apply(str.lower)
 
