@@ -40,7 +40,9 @@ def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
         data_ports[col] = data_ports[col].apply(foo1).apply(foo2)
 
 
-    name = data_ports["Net Name"].apply(lambda x: x.strip("_P").strip("_N"))
+    name = data_ports["Net Name"].apply(
+        lambda x: x.removesuffix("_P").removesuffix("_N")
+    )
 
     # Create names used for variables
     data_ports["var_io"] =          \
