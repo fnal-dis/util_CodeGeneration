@@ -37,6 +37,7 @@ if __name__ == '__main__':
     data = get_spec_data(
         filename=project['spec'],
         ports_sheet=project['ports_sheet'],
+        bus_sheet=project['bus_sheet'],
         project_name_short=project['metadata']['project_name_short']
     )
 
