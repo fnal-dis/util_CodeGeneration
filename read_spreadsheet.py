@@ -76,7 +76,6 @@ def get_spec_data(filename, ports_sheet, bus_sheet, project_name_short, **kwargs
     # Digital bus
     if bus_sheet is not None:
         bus_spec = read_excel(filename, sheet_name=bus_sheet, dtype=str, index_col=[0,1], **kwargs)
-        bus_spec.iloc[:,0:2] = bus_spec.iloc[:,0:2].ffill()
     else:
         bus_spec = {}
 
