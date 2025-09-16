@@ -2,8 +2,9 @@
 from pandas import read_excel
 import re
 
-def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
+def get_spec_data(filename, ports_sheet, bus_sheet, project_name_short, **kwargs):
 
+    # Interface ports
     data_ports = read_excel(filename, sheet_name=ports_sheet, dtype=str, **kwargs)
     data_ports.iloc[:,0:3] = data_ports.iloc[:,0:3].ffill()
 
@@ -72,9 +73,17 @@ def get_spec_data(filename, ports_sheet, project_name_short, **kwargs):
     mask = differential_ports["Net Name"].str.endswith("_P") * (differential_ports["Differential"] == True)
     differential_ports.loc[mask, "Net Name"] = differential_ports.loc[mask, "Net Name"].str.replace("_P", "")
 
+    # Digital bus
+    if bus_sheet is not None:
+        bus_spec = read_excel(filename, sheet_name=bus_sheet, dtype=str, index_col=[0,1], **kwargs)
+    else:
+        bus_spec = {}
+
+
     # Data struct to be passed to template engine
     data = dict(ports=data_ports,
                 single_ended_ports=single_ended_ports,
-                diff_ports=differential_ports)
+                diff_ports=differential_ports,
+                spec_DigitalBus = bus_spec)
 
     return data
