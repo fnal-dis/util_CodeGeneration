@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
         print(f"Generating template {new_filename} in {folder}")
 
-        templates[template.name] = (template, new_path)
+        templates[template.name] = (template, new_path, new_filename)
 
     # Get all project specific templates (terminated in .j2)
     # Templates matching those in the common core will be overwritten
@@ -103,10 +103,10 @@ if __name__ == '__main__':
 
             print(f"Generating template {new_filename} in {folder}")
 
-            templates[template.name] = (template, new_path)
+            templates[template.name] = (template, new_path, new_filenam)
 
 
-    for template, new_path in templates.values():
+    for template, new_path, new_filename in templates.values():
         new_path.write_text(
             template.render(
                 file_name=new_filename,
