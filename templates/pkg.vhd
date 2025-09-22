@@ -1,11 +1,5 @@
 {% extends "bits/header.vhd" %}
 
-{#
-{% macro select_status %}
-  selectattr()
-{% endmacro %}
-#}
-
 {% block content %}
 library ieee;
 use ieee.std_logic_1164.all;
