@@ -34,10 +34,15 @@ if __name__ == '__main__':
     validate_yaml(project_yaml)
     project_name, project = next(iter(project_yaml.items()))
 
+    if 'bus_sheet' in project:
+        bus_sheet = project['bus_sheet']
+    else:
+        bus_sheet = None
+
     data = get_spec_data(
         filename=project['spec'],
         ports_sheet=project['ports_sheet'],
-        bus_sheet=project['bus_sheet'],
+        bus_sheet=bus_sheet,
         project_name_short=project['metadata']['project_name_short']
     )
 
