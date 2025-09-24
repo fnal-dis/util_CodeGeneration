@@ -7,6 +7,7 @@ def get_spec_data(filename, ports_sheet, bus_sheet, project_name_short, **kwargs
     # Interface ports
     data_ports = read_excel(filename, sheet_name=ports_sheet, dtype=str, **kwargs)
     data_ports.iloc[:,0:3] = data_ports.iloc[:,0:3].ffill()
+    data_ports = data_ports.fillna('')
 
     # Skip ports marked with "No Connect"
     data_ports = data_ports[
