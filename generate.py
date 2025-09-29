@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
             print(f"Generating template {new_filename} in {folder}")
 
-            templates[template.name] = (template, new_path, new_filenam)
+            templates[template.name] = (template, new_path, new_filename)
 
 
     for template, new_path, new_filename in templates.values():
