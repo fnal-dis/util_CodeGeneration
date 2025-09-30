@@ -6,7 +6,7 @@ set_property PACKAGE_PIN {{ port['FPGA Pin'].ljust(7) }} {{ get_ports }}
 {% if port['IO Standard'] != '' %}
 set_property IOSTANDARD {{ port['IO Standard'] }} {{ get_ports }}
 {% endif %}
-{% if port['DIR'] == 'OUT' %}
+{% if port['DIR'] != 'IN' %}
 set_property OFFCHIP_TERM NONE {{ get_ports }}
 {% endif %}
 
