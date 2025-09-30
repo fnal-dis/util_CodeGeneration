@@ -87,10 +87,24 @@ begin
 
 -- Differential input buffers
 {% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
-{% if port['Differential'] == True %}
+{% if port['Transceiver'] == False %}
 ibuf_{{ port['Net Name'] }} : IBUFDS
    port map(
      o  => {{ port["var_sig"] }},
+     i  => {{ port["var_io"] }}_p,
+     ib => {{ port["var_io"] }}_n
+  );
+{% endif %}
+{% endfor %}
+
+-- Differential input buffers (Transceivers)
+{% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
+{% if port['Transceiver'] == True %}
+ibuf_{{ port['Net Name'] }} : IBUFDS_GTE2
+   port map(
+     o  => {{ port["var_sig"] }},
+     odiv2 => open,
+     ceb => '0',
      i  => {{ port["var_io"] }}_p,
      ib => {{ port["var_io"] }}_n
   );

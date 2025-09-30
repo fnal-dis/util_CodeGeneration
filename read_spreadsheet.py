@@ -18,8 +18,9 @@ def get_spec_data(filename, ports_sheet, bus_sheet, project_name_short, **kwargs
     if data_ports[["Net Name", "Bundle Name"]].isnull().values.any():
         raise Exception("Spreadsheet has missing net/bundle name!")
 
-    # Cast Differential column
+    # Cast boolean columns
     data_ports.Differential = data_ports.Differential.fillna(False).astype(bool)
+    data_ports.Transceiver = data_ports.Transceiver.fillna(False).astype(bool)
 
     # Sort
     ports_in = data_ports['DIR'] == 'IN'
@@ -45,10 +46,6 @@ def get_spec_data(filename, ports_sheet, bus_sheet, project_name_short, **kwargs
     name = data_ports.apply(
         lambda x: x["Net Name"] if x["Differential"] == False else x["Net Name"].removesuffix("_P").removesuffix("_N"),
         axis = 1
-    )
-
-    name = name.apply(
-        lambda x: x[:-2] + x[-2:].replace("_P", "_p").replace("_N", "_n")
     )
 
     # Create names used for variables
