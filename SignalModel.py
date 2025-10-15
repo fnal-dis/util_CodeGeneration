@@ -73,6 +73,12 @@ class SignalBundle :
         self.name : str  = name
         self.signals : list(Signal) = []
 
+    def __repr__(self):
+        s = f"Bundle<{self.name}>:\n"
+        for sig in self.signals:
+            s += f"\t| {str(sig)}\n"
+        return s
+
     def assign_signal(self, signal):
         signal.parent_bundle = self
         if signal not in self.signals:
