@@ -68,8 +68,9 @@ class Signal :
         return s
 
 class SignalBundle :
-    def __init__(self):
-        self.name : str  = None
+    def __init__(self, project, name):
+        self.project = project
+        self.name : str  = name
         self.signals : list(Signal) = []
 
     def assign_signal(self, signal):
@@ -80,7 +81,22 @@ class SignalBundle :
 
 class SignalSpecification :
     def __init__(self, project : Project):
+        self.project = project
         self.bundles: dict[str, SignalBundle] = {}
+
+    def new_bundle(self, bundle_name):
+        bundle = SignalBundle(self.project, bundle_name)
+        self.bundles[bundle.name] = bundle
+        return bundle
+
+    def get_bundle(self, name, make_if_missing=False):
+        if name in self.bundles:
+            bundle = self.bundles[name]
+        elif make_if_missing:
+            bundle = self.new_bundle(name)
+        else:
+            raise Exception("Bundle not found (use make_if_missing if wanting to create an empty new bundle)")
+        return bundle
 
     @property
     def signals (self):

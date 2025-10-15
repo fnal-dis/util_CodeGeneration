@@ -32,14 +32,7 @@ class PortSheetLoader(BaseSheetLoader) :
         target = self.target_spec
         for port in spec.to_dict(orient='records'):
             sig = Signal(port)
-            # Get or make signal's bundle
-            if sig.bundle_name in target.bundles:
-                bundle = target.bundles[sig.bundle_name]
-            else:
-                bundle = SignalBundle()
-                bundle.name = sig.bundle_name
-                target.bundles[bundle.name] = bundle
-
+            bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
             bundle.assign_signal(sig)
 
 class DigitalBusSheetLoader(BaseSheetLoader) :
