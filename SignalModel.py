@@ -84,6 +84,14 @@ class SignalBundle :
         if signal not in self.signals:
             self.signals.append(signal)
 
+    @property
+    def record_name(self):
+        s = "t_rec_"
+        s += project.metadata.project_name_short
+        s += "_"
+        s += self.name
+        return s
+
 
 class SignalSpecification :
     def __init__(self, project : Project):
