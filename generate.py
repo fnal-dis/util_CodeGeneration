@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import yaml
-import sys
-import os
 import jinja2
 
 from pathlib import Path
