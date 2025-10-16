@@ -34,8 +34,11 @@ class PortSheetLoader(BaseSheetLoader) :
         target = self.target_spec
         for port in spec.to_dict(orient='records'):
             sig = Signal(port)
-            bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
-            bundle.assign_signal(sig)
+            if not sig["No Connect"]:
+                bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
+                bundle.assign_signal(sig)
+
+        self.target_spec.digital_bus = None
 
 class DigitalBusSheetLoader(BaseSheetLoader) :
     def load(self):
@@ -57,11 +60,8 @@ class ExcelSheetLoader :
 
     @classmethod
     def load(cls, target_spec, filename, sheet):
-        if sheet not in cls.valid_sheets:
-            raise MissingSheetException("Sheet " + sheet + "not found in valid_sheets")
-        else:
-            loader_class = cls.valid_sheets[sheet]
-            loader_class(target_spec, filename, sheet).load()
+        loader_class = cls.valid_sheets[sheet]
+        loader_class(target_spec, filename, sheet).load()
 
 class ExcelLoader :
     def __init__(self, filename):
@@ -71,7 +71,7 @@ class ExcelLoader :
         for sheet in ExcelSheetLoader.valid_sheets.keys():
             try:
                 ExcelSheetLoader.load(target_spec, self.filename, sheet)
-            except MissingSheetException as e:
+            except ValueError as e:
                 print("An expected sheet wasn't found:")
                 print(e)
 

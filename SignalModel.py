@@ -57,6 +57,8 @@ class Signal :
         name = name.replace('(', '_').title()
         name = re.sub(r'[\W]+', '', name)
         name = re.sub(r'^([0-9])', r'x\1', name)
+        if self.is_differential:
+            name = name.replace("_P",  "")
         return name
 
     @property
@@ -98,7 +100,7 @@ class SignalBundle :
     def __init__(self, project, name):
         self.project = project
         self.name : str  = name
-        self.signals : list(Signal) = []
+        self._signals : list(Signal) = []
 
     def __repr__(self):
         s = f"Bundle<{self.name}>:\n"
@@ -106,11 +108,19 @@ class SignalBundle :
             s += f"\t| {str(sig)}\n"
         return s
 
+    @property
+    def signals(self):
+        return [s for s in self._signals]
+
     def assign_signal(self, signal):
         signal.parent_bundle = self
         signal.project = self.project
-        if signal not in self.signals:
-            self.signals.append(signal)
+        if signal not in self._signals:
+            # Skip _N complements of differnetial signals (keep only the _p)
+            if signal.is_differential and signal.name.endswith("_N"):
+                return
+
+            self._signals.append(signal)
 
     @property
     def record_typename(self):
@@ -158,6 +168,7 @@ class SignalSpecification :
     def signal_sort(fun):
         def wrapper(*args, **kwargs):
             out = fun(*args, **kwargs)
+            out.sort(key=lambda x: x.name)
             out.sort(key=lambda x: x.direction)
             return out
         return wrapper
@@ -168,9 +179,11 @@ class SignalSpecification :
         return [s for s in self.signals if s.is_singleended]
 
     @property
+    @signal_sort
     def all_signals_differential (self):
         return [s for s in self.signals if s.is_differential]
 
     @property
+    @signal_sort
     def all_signals_transceiver (self):
         return [s for s in self.signals if s.is_transceiver]
