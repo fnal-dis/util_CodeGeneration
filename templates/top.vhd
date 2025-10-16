@@ -13,7 +13,7 @@ library unisim;
 use unisim.vcomponents.all;
 {% endif %}
 
-use work.pkg_{{ project_name }}.t_{{ project_name_short }};
+use work.{{ spec.project.package_name }}.{{ spec.project.supertype_name }};
 
 -- Extra libraries
 {% block extra_libraries %}
@@ -28,15 +28,15 @@ port(
 {% endblock %}
 
     -- Differential ports
-{% for idx, port in diff_ports.iterrows() %}
-  io_{{ (port['Net Name'] ~ '_p').ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic;
-  io_{{ (port['Net Name'] ~ '_n').ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic;
+{% for port in spec.all_signals_differential %}
+  io_{{ (port.name ~ '_p').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
+  io_{{ (port.name ~ '_n').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
 {% endfor %}
 
     -- Single ended ports
-{% for idx, port in single_ended_ports.iterrows() %}
-  io_{{ port['Net Name'].ljust(50) }} : {{ port['DIR'].lower().ljust(3) }} std_logic
-  {%- if idx < (single_ended_ports | length) - 1 %};    {% else %}     {% endif -%}
+{% for port in spec.all_signals_singleended %}
+  io_{{ port.name.ljust(50) }} : {{ port.direction.ljust(3) }} std_logic
+  {%- if loop.last %}    {% else %};    {% endif -%}
     -- {{ port['Notes'] }}
 {% endfor %}
 );
@@ -46,7 +46,7 @@ end entity top;
 architecture rtl of top is
 
   -- Main container for project's specification signals
-  signal sig_{{ project_name_short }} : t_{{ project_name_short }};
+  signal sig_{{ spec.project.name_short }} : {{ spec.project.supertype_name }};
 
   -- Extra architecture declarations
 {% block extra_architecture_declaration %}
@@ -58,7 +58,7 @@ begin
     port map(
 {% block extra_main_portmap %}
 {% endblock %}
-      if_{{ project_name_short }} => sig_{{ project_name_short }}
+      if_{{ spec.project.name_short }} => sig_{{ spec.project.name_short }}
     );
 
 
@@ -69,59 +69,57 @@ begin
 -- Assignments to main record
 
 -- Inputs
-{% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="IN"].iterrows() %}
-  {{ port["var_sig"].ljust(60) }} <= {{ port["var_io"] }};
+{% for port in spec.all_signals_singleended if port.direction == 'in'%}
+  {{ port.name_signalinbundle.ljust(60) }} <= {{ port.name_io }};
 {% endfor %}
 
 -- Outputs
-{% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="OUT"].iterrows() %}
-{% if port['Differential'] != True %}
-  {{ port["var_io"].ljust(60) }} <= {{ port["var_sig"] }};
+{% for port in spec.all_signals_singleended if port.direction == 'out'%}
+{% if not port.Differential %}
+  {{ port.name_io.ljust(60) }} <= {{ port.name_signalinbundle }};
 {% endif %}
 {% endfor %}
 
 -- Inouts
-{% for idx, port in single_ended_ports[single_ended_ports["DIR"]=="INOUT"].iterrows() %}
-  {{ port["var_io"].ljust(60) }} <= {{ port["var_sig"] }};
+{% for port in spec.all_signals_singleended if port.direction == 'inout'%}
+  {{ port.name_io.ljust(60) }} <= {{ port.name_signalinbundle }};
 {% endfor %}
 
 -- Differential input buffers
-{% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
-{% if port['Transceiver'] == False %}
-ibuf_{{ port['Net Name'] }} : IBUFDS
+{% for port in spec.all_signals_differential if port.direction == 'in'%}
+{% if not port.Transceiver  %}
+ibuf_{{ port.name }} : IBUFDS
    port map(
-     o  => {{ port["var_sig"] }},
-     i  => {{ port["var_io"] }}_p,
-     ib => {{ port["var_io"] }}_n
+     o  => {{ port.name_signalinbundle }},
+     i  => {{ port.name_io }}_p,
+     ib => {{ port.name_io }}_n
   );
 {% endif %}
 {% endfor %}
 
 -- Differential input buffers (Transceivers)
-{% for idx, port in diff_ports[diff_ports["DIR"] == "IN"].iterrows() %}
-{% if port['Transceiver'] == True %}
-ibuf_{{ port['Net Name'] }} : IBUFDS_GTE2
+{% for port in spec.all_signals_differential if port.direction == 'in'%}
+{% if port.Transceiver %}
+ibuf_{{ port.name }} : IBUFDS_GTE2
    port map(
-     o  => {{ port["var_sig"] }},
+     o  => {{ port.name_signalinbundle }},
      odiv2 => open,
      ceb => '0',
-     i  => {{ port["var_io"] }}_p,
-     ib => {{ port["var_io"] }}_n
+     i  => {{ port.name_io }}_p,
+     ib => {{ port.name_io }}_n
   );
 {% endif %}
 {% endfor %}
 
 -- Differential output buffers
 
-{% for idx, port in diff_ports[diff_ports["DIR"] == "OUT"].iterrows() %}
-{% if port['Differential'] == True %}
-obuf_{{ port['Net Name'] }} : OBUFDS
+{% for port in spec.all_signals_differential if port.direction == 'out'%}
+obuf_{{ port.name }} : OBUFDS
    port map(
-     i  => {{ port["var_sig"] }},
-     o  => {{ port["var_io"] }}_p,
-     ob => {{ port["var_io"] }}_n
+     i  => {{ port.name_signalinbundle }},
+     o  => {{ port.name_io }}_p,
+     ob => {{ port.name_io }}_n
   );
-{% endif %}
 {% endfor %}
 
 end architecture rtl;

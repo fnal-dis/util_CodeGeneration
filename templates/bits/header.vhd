@@ -12,20 +12,20 @@
 --     ----       ----
 -------------------------------------------------------------------------------
 -- Title      : {% block title %} The Title {% endblock +%}
--- Project    : {{ project }}
+-- Project    : {{ spec.project.project }}
 -------------------------------------------------------------------------------
 -- File       : {{ file_name }}
--- Author     : {{ author }}
--- Division   : {{ division }}
--- Created    : {{ date_created }}
+-- Author     : {{ spec.project.author }}
+-- Division   : {{ spec.project.division }}
+-- Created    : {{ spec.project.date_created }}
 -- Last updatjhe: {{ date_updated }}
--- Standard   : {{ vhdl_standard }}
+-- Standard   : {{ spec.project.vhdl_standard }}
 -------------------------------------------------------------------------------
 -- Description:
 {% block description %}
 {% endblock %}
 -------------------------------------------------------------------------------
--- {{ copyright }}
+-- {{ spec.project.copyright }}
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description

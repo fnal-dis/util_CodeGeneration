@@ -7,11 +7,8 @@ import jinja2
 
 from pathlib import Path
 
-from read_spreadsheet import get_spec_data
-
-def validate_yaml(yaml_dict):
-    if len(yaml_dict.keys()) > 1:
-        raise Exception("Only 1 project allowed in a YAML")
+from SignalModel import Project, SignalSpecification
+from Loaders import ExcelLoader
 
 hdl_extensions = ["vhd", "v", "sv"]
 constraints_extensions = ["xdc", "qsf"]
@@ -29,22 +26,10 @@ project_template_dir = scr_dir / "../templates"
 
 if __name__ == '__main__':
 
-    # Load project information
-    project_yaml = yaml.safe_load(Path("project.yaml").read_text())
-    validate_yaml(project_yaml)
-    project_name, project = next(iter(project_yaml.items()))
-
-    if 'bus_sheet' in project:
-        bus_sheet = project['bus_sheet']
-    else:
-        bus_sheet = None
-
-    data = get_spec_data(
-        filename=project['spec'],
-        ports_sheet=project['ports_sheet'],
-        bus_sheet=bus_sheet,
-        project_name_short=project['metadata']['project_name_short']
-    )
+    project = Project(scr_dir / "../project.yaml")
+    spec = SignalSpecification(project)
+    loader = ExcelLoader(project.spec)
+    loader.load(spec)
 
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader([
@@ -71,7 +56,7 @@ if __name__ == '__main__':
         folder = Path("src") / map_extension(ext) / "_AUTOGEN"
         folder.mkdir(parents=True, exist_ok=True)
 
-        new_filename = path.stem + f"_{project_name}." + ext
+        new_filename = path.stem + f"_{project.name}." + ext
         new_path = folder / new_filename
 
         print(f"Generating template {new_filename} in {folder}")
@@ -98,7 +83,7 @@ if __name__ == '__main__':
             folder = Path("src") / map_extension(ext) / "_AUTOGEN"
             folder.mkdir(parents=True, exist_ok=True)
 
-            new_filename = path.with_suffix('').stem + f"_{project_name}." + ext
+            new_filename = path.with_suffix('').stem + f"_{project.name}." + ext
             new_path = folder / new_filename
 
             print(f"Generating template {new_filename} in {folder}")
@@ -109,9 +94,8 @@ if __name__ == '__main__':
     for template, new_path, new_filename in templates.values():
         new_path.write_text(
             template.render(
+                spec=spec,
                 file_name=new_filename,
-                project_name=project_name,
-                **project['metadata'],
-                **data
+                spec_DigitalBus=spec.digital_bus
             )
         )

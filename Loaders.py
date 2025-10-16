@@ -21,9 +21,11 @@ class PortSheetLoader(BaseSheetLoader) :
         spec = read_excel(self.file_name,
                           sheet_name=self.sheet_name,
                           dtype=str)
-        spec.iloc[:, 0:3] = spec.iloc[:, 0:3].ffill() # TODO: Select 'ffill'able columns by name
+        # TODO: Select 'ffill'able columns by name
+        spec.iloc[:, 0:3] = spec.iloc[:, 0:3].ffill()
         spec = spec.fillna('')
 
+        # Cast boolean columns to correctly assign NA to False
         boolean_columns = ["Differential", "Transceiver", "No Connect"]
         for col in boolean_columns:
             if col in spec:
@@ -42,7 +44,10 @@ class DigitalBusSheetLoader(BaseSheetLoader) :
                           sheet_name=self.sheet_name,
                           dtype=str,
                           index_col=[0,1])
-        return spec
+        self.target_spec.digital_bus = spec
+
+class MissingSheetException(Exception):
+    pass
 
 class ExcelSheetLoader :
     valid_sheets = {
@@ -53,7 +58,7 @@ class ExcelSheetLoader :
     @classmethod
     def load(cls, target_spec, filename, sheet):
         if sheet not in cls.valid_sheets:
-            raise Exception("Sheet " + sheet + "not found in valid_sheets")
+            raise MissingSheetException("Sheet " + sheet + "not found in valid_sheets")
         else:
             loader_class = cls.valid_sheets[sheet]
             loader_class(target_spec, filename, sheet).load()
@@ -62,8 +67,13 @@ class ExcelLoader :
     def __init__(self, filename):
         self.filename = filename
 
-    def load(self, target_spec, sheet):
-        ExcelSheetLoader.load(target_spec, self.filename, sheet)
+    def load(self, target_spec):
+        for sheet in ExcelSheetLoader.valid_sheets.keys():
+            try:
+                ExcelSheetLoader.load(target_spec, self.filename, sheet)
+            except MissingSheetException as e:
+                print("An expected sheet wasn't found:")
+                print(e)
 
 if __name__ == '__main__':
     print("Main is Loaders.py")
@@ -71,4 +81,4 @@ if __name__ == '__main__':
     spec = SignalSpecification(project)
 
     loader = ExcelLoader("../../spec/LBNF_Horn_PS_controls_SOM__Simplified.xlsx")
-    loader.load(spec, "Ports")
+    loader.load(spec)

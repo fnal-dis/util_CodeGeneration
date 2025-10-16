@@ -14,10 +14,28 @@ class Project :
         for attr,val in project.items():
             self.__setattr__(attr, val)
 
+        if "Transceiver" not in self.__dict__.keys():
+            self.__setattr__("Transcveiver", False)
+
     def validate_yaml(self, yaml_dict):
         if len(yaml_dict.keys()) > 1:
             raise Exception("Only 1 project allowed in a YAML")
 
+    @property
+    def name_short(self):
+        return self.project_name_short
+
+    @property
+    def basetype_name(self):
+        return f"t_{self.name_short}_BaseType"
+
+    @property
+    def supertype_name(self):
+        return f"t_{self.name_short}"
+
+    @property
+    def package_name(self):
+        return f"pkg_{self.name}"
 
 class Signal :
 
@@ -25,6 +43,8 @@ class Signal :
         self.attrs = attrs
         self.name = self.process_name("Net Name")
         self.bundle_name = self.process_name("Bundle Name")
+
+        self.direction = self.attrs["DIR"].lower()
 
     def __getitem__(self, key):
         return self.attrs[key]
@@ -41,7 +61,7 @@ class Signal :
 
     @property
     def is_singleended(self):
-        return self.attrs["Differential"] is False
+        return not self.attrs["Differential"]
 
     @property
     def is_differential(self):
@@ -56,9 +76,16 @@ class Signal :
         return "io_" + self.name
 
     @property
+    def name_record(self):
+        s = self.name
+        s += "_"
+        s += self.direction
+        return s
+
+    @property
     def name_signalinbundle(self):
         s = "sig_"
-        s += self.project.short_name
+        s += self.project.project_name_short
         s += ".if_"
         s += self.bundle_name
         s += "."
@@ -81,31 +108,37 @@ class SignalBundle :
 
     def assign_signal(self, signal):
         signal.parent_bundle = self
+        signal.project = self.project
         if signal not in self.signals:
             self.signals.append(signal)
 
     @property
-    def record_name(self):
+    def record_typename(self):
         s = "t_rec_"
-        s += project.metadata.project_name_short
+        s += self.project.project_name_short
         s += "_"
         s += self.name
         return s
 
+    @property
+    def interface_name(self):
+        s = "if_"
+        s += self.name
+        return s
 
 class SignalSpecification :
     def __init__(self, project : Project):
         self.project = project
-        self.bundles: dict[str, SignalBundle] = {}
+        self._bundles: dict[str, SignalBundle] = {}
 
     def new_bundle(self, bundle_name):
         bundle = SignalBundle(self.project, bundle_name)
-        self.bundles[bundle.name] = bundle
+        self._bundles[bundle.name] = bundle
         return bundle
 
     def get_bundle(self, name, make_if_missing=False):
-        if name in self.bundles:
-            bundle = self.bundles[name]
+        if name in self._bundles:
+            bundle = self._bundles[name]
         elif make_if_missing:
             bundle = self.new_bundle(name)
         else:
@@ -114,11 +147,23 @@ class SignalSpecification :
 
     @property
     def signals (self):
-        for bundle in self.bundles.values():
+        for bundle in self.bundles:
             for sig in bundle.signals:
                 yield sig
 
     @property
+    def bundles (self):
+        return self._bundles.values()
+
+    def signal_sort(fun):
+        def wrapper(*args, **kwargs):
+            out = fun(*args, **kwargs)
+            out.sort(key=lambda x: x.direction)
+            return out
+        return wrapper
+
+    @property
+    @signal_sort
     def all_signals_singleended (self):
         return [s for s in self.signals if s.is_singleended]
 

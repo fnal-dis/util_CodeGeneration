@@ -1,3 +1,3 @@
-{% for idx, port in ports.iterrows()%}
-set_location_assignment PIN_{{ port['FPGA Pin'] }} -to io_{{ port['Net Name'] }}
+{% for port in spec.all_signals_singleended %}
+set_location_assignment PIN_{{ port['FPGA Pin'] }} -to io_{{ port.name }}
 {% endfor %}
