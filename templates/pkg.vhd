@@ -4,34 +4,28 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-package pkg_{{ project_name }} is
+package {{ spec.project.package_name }} is
 
   -- <Base Types>
-  subtype t_{{ project_name_short }}_BaseType is std_logic;
+  subtype {{ spec.project.basetype_name }} is std_logic;
 
   -- <Records>
-{# Write out all signals according to their bundle #}
-{% for bundle_name in ports["Bundle Name"].unique() %}
-  type t_rec_{{ project_name_short }}_{{ bundle_name }} is record
-{% for idx, port in single_ended_ports[single_ended_ports["Bundle Name"]==bundle_name].iterrows() %}
-{% set sig_name=port['Net Name']~"_"~port['DIR'].lower() %}
-{{ sig_name.ljust(30).rjust(34) }}: t_{{ project_name_short }}_BaseType; -- {{ port['Comment'] }}
-{% endfor %}
-{% for idx, port in diff_ports[diff_ports["Bundle Name"]==bundle_name].iterrows() %}
-{% set sig_name=port['Net Name']~"_"~port['DIR'].lower() %}
-{{ sig_name.ljust(30).rjust(34) }}: t_{{ project_name_short }}_BaseType; -- {{ port['Comment'] }}
+{% for bundle in spec.bundles %}
+  type {{ bundle.record_typename }} is record
+{% for signal in bundle.signals %}
+{{ signal.name_record.ljust(59).rjust(63) }} : {{ spec.project.basetype_name }};
 {% endfor %}
   end record;
 
 {% endfor %}
 
   -- <Supertype>
-  type t_{{ project_name_short }} is record
-{% for bundle_name in ports["Bundle Name"].unique() %}
-    if_{{ bundle_name.ljust(16) }} : t_rec_{{ project_name_short }}_{{ bundle_name }};
+  type {{ spec.project.supertype_name }} is record
+{% for bundle in spec.bundles %}
+    {{ bundle.interface_name.ljust(19) }} : {{ bundle.record_typename }};
 {% endfor %}
   end record;
 
-end package pkg_{{ project_name }};
+end package pkg_{{ spec.project.name }};
 
 {% endblock %}
