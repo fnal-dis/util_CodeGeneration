@@ -38,8 +38,6 @@ class PortSheetLoader(BaseSheetLoader) :
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
                 bundle.assign_signal(sig)
 
-        self.target_spec.digital_bus = None
-
 class DigitalBusSheetLoader(BaseSheetLoader) :
     def load(self):
         # TODO: Convert to Signal types
@@ -80,4 +78,6 @@ if __name__ == '__main__':
     spec = SignalSpecification(project)
 
     loader = ExcelLoader("../../spec/LBNF_Horn_PS_controls_SOM__Simplified.xlsx")
-    loader.load(spec)
+    loader.load(spec, project.get_sheets())
+
+    spec.consolidate()

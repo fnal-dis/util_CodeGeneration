@@ -7,13 +7,18 @@ use ieee.std_logic_1164.all;
 package {{ spec.project.package_name }} is
 
   -- <Base Types>
-  subtype {{ spec.project.basetype_name }} is std_logic;
+  subtype t_{{ spec.project.basetype_name }} is std_logic;
+  subtype t_arr_{{ spec.project.basetype_name }} is std_logic_vector;
 
   -- <Records>
 {% for bundle in spec.bundles %}
   type {{ bundle.record_typename }} is record
 {% for signal in bundle.signals %}
-{{ signal.name_record.ljust(59).rjust(63) }} : {{ spec.project.basetype_name }};
+{% if not signal.is_array %}
+{{ signal.name_record.ljust(59).rjust(63) }} : t_{{ spec.project.basetype_name }};
+{% else %}
+{{ signal.name_record.ljust(59).rjust(63) }} : t_arr_{{ spec.project.basetype_name }}(signal.last-1 downto 0);
+{% endif %}
 {% endfor %}
   end record;
 

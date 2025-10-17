@@ -28,6 +28,8 @@ if __name__ == '__main__':
     loader = ExcelLoader(project.spec)
     loader.load(spec, project.get_sheets())
 
+    spec.consolidate()
+
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader([
                 jinja2.FileSystemLoader(str(template_dir)),
