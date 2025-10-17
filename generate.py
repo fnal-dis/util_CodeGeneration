@@ -26,7 +26,7 @@ if __name__ == '__main__':
     project = Project(scr_dir / "../project.yaml")
     spec = SignalSpecification(project)
     loader = ExcelLoader(project.spec)
-    loader.load(spec)
+    loader.load(spec, project.get_sheets())
 
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader([

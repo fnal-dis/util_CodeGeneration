@@ -59,21 +59,20 @@ class ExcelSheetLoader :
     }
 
     @classmethod
-    def load(cls, target_spec, filename, sheet):
-        loader_class = cls.valid_sheets[sheet]
+    def load(cls, target_spec, filename, sheet_type, sheet):
+        loader_class = cls.valid_sheets[sheet_type]
         loader_class(target_spec, filename, sheet).load()
 
 class ExcelLoader :
     def __init__(self, filename):
         self.filename = filename
 
-    def load(self, target_spec):
-        for sheet in ExcelSheetLoader.valid_sheets.keys():
-            try:
-                ExcelSheetLoader.load(target_spec, self.filename, sheet)
-            except ValueError as e:
-                print("An expected sheet wasn't found:")
-                print(e)
+    def load(self, target_spec, sheet_dict):
+        for sheet_type, sheet in sheet_dict.items():
+            if sheet_type not in ExcelSheetLoader.valid_sheets:
+                print(f"Loader for sheet {sheet} of type {sheet_type} not found! Skipping")
+            else:
+                ExcelSheetLoader.load(target_spec, self.filename, sheet_type, sheet)
 
 if __name__ == '__main__':
     print("Main is Loaders.py")
