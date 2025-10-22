@@ -29,13 +29,13 @@ port(
 
     -- Differential ports
 {% for port in spec.all_signals_differential %}
-  io_{{ (port.name ~ '_p').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
-  io_{{ (port.name ~ '_n').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
+  {{ (port.name_io ~ '_p').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
+  {{ (port.name_io ~ '_n').ljust(50) }} : {{ port.direction.ljust(3) }} std_logic;
 {% endfor %}
 
     -- Single ended ports
 {% for port in spec.all_signals_singleended %}
-  io_{{ port.name.ljust(50) }} : {{ port.direction.ljust(3) }} std_logic
+  {{ port.name_io.ljust(50) }} : {{ port.direction.ljust(3) }} std_logic
   {%- if loop.last %}    {% else %};    {% endif -%}
     -- {{ port['Notes'] }}
 {% endfor %}

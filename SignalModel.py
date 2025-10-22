@@ -84,7 +84,7 @@ class Signal :
 
     @property
     def name_io(self):
-        return "io_" + self.name
+        return f"io_{self.bundle_name}_{self.name}"
 
     @property
     def name_record(self):
