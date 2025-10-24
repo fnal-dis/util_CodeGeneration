@@ -76,7 +76,7 @@ class Signal :
 
     @property
     def is_differential(self):
-        return not self.is_singleended and not self.attrs["Transceiver"]
+        return self.attrs["Differential"]
 
     @property
     def is_transceiver(self):
@@ -125,7 +125,7 @@ class SignalBundle :
         signal.parent_bundle = self
         signal.project = self.project
         if signal not in self._signals:
-            # Skip _N complements of differnetial signals (keep only the _p)
+            # Skip _N complements of differential signals (keep only the _p)
             if signal.is_differential and signal.name.endswith("_N"):
                 return
 
