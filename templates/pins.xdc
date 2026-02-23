@@ -38,7 +38,7 @@ create_interface if_{{ bundle.name }}
 set_property interface if_{{ bundle.name }} {{ get_ports }}
 {% endfor %}
 {% for port in bundle.signals if port.Differential %}
-{% set get_ports = "[get_ports io_" ~ port.name ~ "_p]"  %}
+{% set get_ports = "[get_ports io_" ~ port.name_io ~ "_p]"  %}
 set_property interface if_{{ bundle.name }} {{ get_ports }}
 {% endfor %}
 {% endfor %}
