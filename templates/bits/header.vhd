@@ -11,15 +11,15 @@
 --     /   /     \   \
 --     ----       ----
 -------------------------------------------------------------------------------
--- Title      : {% block title %} The Title {% endblock +%}
--- Project    : {{ spec.project.project }}
+-- Title        : {% block title %} The Title {% endblock +%}
+-- Project      : {{ spec.project.project }}
 -------------------------------------------------------------------------------
--- File       : {{ file_name }}
--- Author     : {{ spec.project.author }}
--- Division   : {{ spec.project.division }}
--- Created    : {{ spec.project.date_created }}
--- Last updatjhe: {{ date_updated }}
--- Standard   : {{ spec.project.vhdl_standard }}
+-- File         : {{ file_name }}
+-- Author       : {{ spec.project.author }}
+-- Division     : {{ spec.project.division }}
+-- Created      : {{ spec.project.date_created }}
+-- Last updated : {{ date_updated }}
+-- Standard     : {{ spec.project.vhdl_standard }}
 -------------------------------------------------------------------------------
 -- Description:
 {% block description %}

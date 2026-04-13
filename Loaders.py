@@ -21,18 +21,25 @@ class PortSheetLoader(BaseSheetLoader) :
         spec = read_excel(self.file_name,
                           sheet_name=self.sheet_name,
                           dtype=str)
+        # Drop completely empty rows before any forward-fill
+        spec = spec[~spec.isna().all(axis=1)].copy()
         # TODO: Select 'ffill'able columns by name
         spec.iloc[:, 0:3] = spec.iloc[:, 0:3].ffill()
         spec = spec.fillna('')
 
-        # Cast boolean columns to correctly assign NA to False
+        # Cast boolean columns so TRUE/FALSE map correctly and empty strings become False
         boolean_columns = ["Differential", "Transceiver", "No Connect"]
         for col in boolean_columns:
             if col in spec:
-                spec[col] = spec[col].astype(bool)
+                normalized = spec[col].astype(str).str.strip().str.upper()
+                spec[col] = normalized.eq("TRUE")
 
         target = self.target_spec
         for port in spec.to_dict(orient='records'):
+            net_name = str(port.get("Net Name", "")).strip()
+            direction = str(port.get("DIR", "")).strip()
+            if not net_name or not direction:
+                continue
             sig = Signal(port)
             if not sig["No Connect"]:
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)

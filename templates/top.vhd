@@ -69,26 +69,27 @@ begin
 -- Assignments to main record
 
 -- Inputs
-{% for port in spec.all_signals_singleended if port.direction == 'in'%}
+{% for port in spec.all_signals_singleended if port.direction == 'in' and not (port.name.endswith('_N') and (spec.all_signals_differential | selectattr('bundle_name', 'equalto', port.bundle_name) | selectattr('name', 'equalto', port.name[:-2]) | list | length)) %}
   {{ port.name_signalinbundle.ljust(60) }} <= {{ port.name_io }};
 {% endfor %}
 
 -- Outputs
-{% for port in spec.all_signals_singleended if port.direction == 'out'%}
+{% for port in spec.all_signals_singleended if port.direction == 'out' and not (port.name.endswith('_N') and (spec.all_signals_differential | selectattr('bundle_name', 'equalto', port.bundle_name) | selectattr('name', 'equalto', port.name[:-2]) | list | length)) %}
 {% if not port.Differential %}
   {{ port.name_io.ljust(60) }} <= {{ port.name_signalinbundle }};
 {% endif %}
 {% endfor %}
 
 -- Inouts
-{% for port in spec.all_signals_singleended if port.direction == 'inout'%}
+{% for port in spec.all_signals_singleended if port.direction == 'inout' and not (port.name.endswith('_N') and (spec.all_signals_differential | selectattr('bundle_name', 'equalto', port.bundle_name) | selectattr('name', 'equalto', port.name[:-2]) | list | length)) %}
   {{ port.name_io.ljust(60) }} <= {{ port.name_signalinbundle }};
 {% endfor %}
 
 -- Differential input buffers
 {% for port in spec.all_signals_differential if port.direction == 'in'%}
 {% if not port.Transceiver  %}
-ibuf_{{ port.name }} : IBUFDS
+{% set dup_name = (spec.all_signals_differential | selectattr('name', 'equalto', port.name) | list | length) > 1 %}
+ibuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : IBUFDS
    port map(
      o  => {{ port.name_signalinbundle }},
      i  => {{ port.name_io }}_p,
@@ -100,7 +101,8 @@ ibuf_{{ port.name }} : IBUFDS
 -- Differential input buffers (Transceivers)
 {% for port in spec.all_signals_differential if port.direction == 'in'%}
 {% if port.is_transceiver %}
-ibuf_{{ port.name }} : IBUFDS_GTE2
+{% set dup_name = (spec.all_signals_differential | selectattr('name', 'equalto', port.name) | list | length) > 1 %}
+ibuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : IBUFDS_GTE2
    port map(
      o  => {{ port.name_signalinbundle }},
      odiv2 => open,
@@ -114,7 +116,8 @@ ibuf_{{ port.name }} : IBUFDS_GTE2
 -- Differential output buffers
 
 {% for port in spec.all_signals_differential if port.direction == 'out'%}
-obuf_{{ port.name }} : OBUFDS
+{% set dup_name = (spec.all_signals_differential | selectattr('name', 'equalto', port.name) | list | length) > 1 %}
+obuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : OBUFDS
    port map(
      i  => {{ port.name_signalinbundle }},
      o  => {{ port.name_io }}_p,

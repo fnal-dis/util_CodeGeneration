@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import jinja2
 
 from pathlib import Path
@@ -23,7 +24,22 @@ project_template_dir = scr_dir / "../templates"
 
 if __name__ == '__main__':
 
-    project = Project(scr_dir / "../project.yaml")
+    parser = argparse.ArgumentParser(description="Generate HDL and constraints files.")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="../project.yaml",
+        help="Path to configuration file."
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        default="src",
+        help="Directory where generated files will be saved."
+    )
+    args = parser.parse_args()
+
+    project = Project(scr_dir / args.config)
     spec = SignalSpecification(project)
     loader = ExcelLoader(project.spec)
     loader.load(spec, project.get_sheets())
@@ -50,7 +66,7 @@ if __name__ == '__main__':
         print(f"Found template {template.name}")
 
         ext = path.suffix.lstrip(".")
-        folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+        folder = Path(args.output_dir) / map_extension(ext) / "_AUTOGEN"
         folder.mkdir(parents=True, exist_ok=True)
 
         new_filename = path.stem + f"_{project.name}." + ext
@@ -77,7 +93,7 @@ if __name__ == '__main__':
             print(f"Found project-specific template {template.name}")
 
             ext = path.suffixes[0].lstrip(".")
-            folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+            folder = Path(args.output_dir) / map_extension(ext) / "_AUTOGEN"
             folder.mkdir(parents=True, exist_ok=True)
 
             new_filename = path.with_suffix('').stem + f"_{project.name}." + ext

@@ -14,6 +14,10 @@ class Project :
         for attr,val in project.items():
             self.__setattr__(attr, val)
 
+        print("Project loaded with attributes:")
+        for k in self.__dict__.keys():
+            print(f"\t| {k} : {self.__dict__[k]}")
+
         if "Transceiver" not in self.__dict__.keys():
             self.__setattr__("Transcveiver", False)
 
@@ -80,7 +84,10 @@ class Signal :
 
     @property
     def is_transceiver(self):
-        return self.attrs["Transceiver"]
+        value = self.attrs.get("Transceiver", False)
+        if isinstance(value, str) and "non" in value.lower():
+            return False
+        return bool(value)
 
     @property
     def name_io(self):
