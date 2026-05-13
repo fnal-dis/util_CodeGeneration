@@ -2,6 +2,7 @@
 
 import re
 import yaml
+import schema
 
 from pathlib import Path
 
@@ -52,21 +53,41 @@ class Project :
 
 class Signal :
 
+    _attr_schema = schema.Schema(
+        [
+            {
+                "Net Name": str,
+                "Bundle Name": str,
+                "FPGA Pin": str,
+                "IO Standard": str,
+                "Net Name": str,
+                "Differential": bool,
+                "Transceiver": bool,
+                "No Connect": bool,
+                schema.Optional("Protocol"): str
+            }
+        ]
+    )
+
     def __init__(self, attrs : dict):
+        self._attr_schema.validate(attrs)
+
         self.attrs = attrs
-        self.name = self.process_name("Net Name")
-        self.bundle_name = self.process_name("Bundle Name")
-
+        self.name = self.process_name(self.attrs["Net Name"])
+        self.bundle_name = self.process_name(self.attrs["Bundle Name"])
         self.direction = self.attrs["DIR"].lower()
+        self.pin = self.attrs["FPGA Pin"]
+        self.std = self.attrs["IO Standard"]
 
+    #TODO: deprecate usage of this in the templates
     def __getitem__(self, key):
         return self.attrs[key]
 
     def __repr__(self):
         return "Signal<" + self.name + ">"
 
-    def process_name(self, field):
-        name = self[field]
+    def process_name(self, name_in):
+        name = name_in
         name = name.replace('(', '_').title()
         name = re.sub(r'[\W]+', '', name)
         name = re.sub(r'^([0-9])', r'x\1', name)
