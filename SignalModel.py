@@ -129,13 +129,12 @@ class BundleProtocol:
             return cls.registered_protocols[name]
         obj = super().__new__(cls)
         cls.registered_protocols[name] = obj
+        if name not in cls.implemented_protocols.keys():
+            print(f"Warning: Protocol {name} has no known implementation")
         return obj
 
     def __init__(self, name):
         self.name : str = name
-
-        if name not in self.implemented_protocols.keys():
-            raise Warning(f"Protocol {name} has no known implementation")
 
     def __repr__(self):
         return f"BundleProtocol<{self.name}>"

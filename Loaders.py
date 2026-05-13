@@ -96,7 +96,7 @@ class CsvLoader:
         self.filename = project.spec
 
     def load(self, target_spec):
-        spec = read_csv(self.filename, dtype=str, na_filter=False)
+        spec = read_csv(self.filename, dtype=str, na_filter=False, index_col=False)
 
         #TODO: DRY wrt to PortSheetLoader
         # Cast boolean columns to correctly assign NA to False
@@ -111,12 +111,16 @@ class CsvLoader:
             if not sig["No Connect"]:
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
                 if "Protocol" in sig.attrs.keys():
-                    if sig["Protocol"] is not None:
-                        protocol = BundleProtocol(sig["Protocol"])
-                        bundle.assign_protocol(protocol)
+                    if sig["Protocol"] is None:
+                        continue
+                    if sig["Protocol"] == '':
+                        continue
+
+                    protocol = BundleProtocol(sig["Protocol"])
+                    bundle.assign_protocol(protocol)
                     bundle.assign_signal(sig)
 
-        self.target_spec.digital_bus = None
+        target_spec.digital_bus = None
 
 
 class SpecLoader:
