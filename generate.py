@@ -30,9 +30,10 @@ if __name__ == '__main__':
         project_yaml_path = Path(sys.argv[1])
 
     project = Project(project_yaml_path)
+
     spec = SignalSpecification(project)
-    loader = ExcelLoader(project.spec)
-    loader.load(spec, project.get_sheets())
+    loader = SpecLoader(project)
+    loader.load(spec)
 
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader([

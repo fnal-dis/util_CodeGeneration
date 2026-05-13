@@ -21,16 +21,6 @@ class Project :
 
         self.spec = yaml_path.parent / Path(self.spec)
 
-
-    def get_sheets(self):
-        d = {}
-        if "ports_sheet" in self.__dict__:
-            d["Ports"] = self.ports_sheet
-        if "bus_sheet" in self.__dict__:
-            d["Digital Bus"] = self.bus_sheet
-
-        return d
-
     def validate_yaml(self, yaml_dict):
         if len(yaml_dict.keys()) > 1:
             raise Exception("Only 1 project allowed in a YAML")
