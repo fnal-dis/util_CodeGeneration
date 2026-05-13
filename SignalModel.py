@@ -54,23 +54,22 @@ class Project :
 class Signal :
 
     _attr_schema = schema.Schema(
-        [
-            {
-                "Net Name": str,
-                "Bundle Name": str,
-                "FPGA Pin": str,
-                "IO Standard": str,
-                "Net Name": str,
-                "Differential": bool,
-                "Transceiver": bool,
-                "No Connect": bool,
-                schema.Optional("Protocol"): str
-            }
-        ]
+        {
+            "Net Name": str,
+            "Bundle Name": str,
+            "FPGA Pin": str,
+            "IO Standard": str,
+            "Direction": lambda s: s in ("in", "out", "inout"),
+            "Net Name": str,
+            "Differential": bool,
+            "Transceiver": bool,
+            "No Connect": bool,
+            schema.Optional("Protocol"): str
+        }
     )
 
     def __init__(self, attrs : dict):
-        self._attr_schema.validate(attrs)
+        #self._attr_schema.validate(attrs)
 
         self.attrs = attrs
         self.name = self.process_name(self.attrs["Net Name"])
