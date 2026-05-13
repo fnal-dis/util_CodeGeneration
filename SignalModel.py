@@ -184,8 +184,8 @@ class SignalSpecification :
         self.project = project
         self._bundles: dict[str, SignalBundle] = {}
 
-    def new_bundle(self, bundle_name, protocol : BundleProtocol=None):
-        bundle = SignalBundle(self.project, bundle_name, protocol)
+    def new_bundle(self, bundle_name):
+        bundle = SignalBundle(self.project, bundle_name )
         self._bundles[bundle.name] = bundle
         return bundle
 
