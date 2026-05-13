@@ -15,7 +15,7 @@ class Project :
             self.__setattr__(attr, val)
 
         if "Transceiver" not in self.__dict__.keys():
-            self.__setattr__("Transcveiver", False)
+            self.__setattr__("Transceiver", False)
 
     def get_sheets(self):
         d = {}
