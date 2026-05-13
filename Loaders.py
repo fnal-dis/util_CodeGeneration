@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pandas import read_excel, read_csv
 import re
 
-from SignalModel import Signal, SignalBundle, SignalSpecification, Project
+from SignalModel import Signal, SignalBundle, BundleProtocol, SignalSpecification, Project
 
 class BaseSheetLoader(ABC) :
     def __init__(self, target_spec : SignalSpecification, file_name : str, sheet_name : str):
@@ -105,7 +105,7 @@ class CsvLoader:
             if col in spec:
                 spec[col] = spec[col].astype(bool)
 
-        target = self.target_spec
+        target = target_spec
         for port in spec.to_dict(orient='records'):
             sig = Signal(port)
             if not sig["No Connect"]:
