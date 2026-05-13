@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import jinja2
+import sys
 
 from pathlib import Path
 
@@ -23,7 +24,12 @@ project_template_dir = scr_dir / "../templates"
 
 if __name__ == '__main__':
 
-    project = Project(scr_dir / "../project.yaml")
+    if sys.argc < 2:
+        project_yaml_path = scr_dir / "../project.yaml"
+    else:
+        project_yaml_path = Path(sys.argv[1])
+
+    project = Project(project_yaml_path)
     spec = SignalSpecification(project)
     loader = ExcelLoader(project.spec)
     loader.load(spec, project.get_sheets())
