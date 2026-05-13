@@ -128,7 +128,7 @@ class SpecLoader:
 
     def __init__(self, project):
         self.filename = project.spec
-        self.extension = filename.split(".")[-1]
+        self.extension = self.filename.split(".")[-1]
 
         if self.extension not in self.loaders.keys():
             raise Exception(f"Unknown extension {self.extension}")
