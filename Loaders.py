@@ -36,6 +36,9 @@ class PortSheetLoader(BaseSheetLoader) :
             sig = Signal(port)
             if not sig["No Connect"]:
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
+                if sig["protocol"] is not None:
+                    protocol = BundleProtocol(sig["protocol"])
+                    bundle.assign_protocol(protocol)
                 bundle.assign_signal(sig)
 
         self.target_spec.digital_bus = None

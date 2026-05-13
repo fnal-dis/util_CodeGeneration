@@ -105,10 +105,33 @@ class Signal :
         s += self.direction
         return s
 
+class BundleProtocol:
+
+    registered_protocols = {}
+    implemented_protocols = {"SPI": [], "I2C": [], "ADS9813": []}
+
+    def __new__(cls, name):
+        if name in cls.registered_protocols:
+            return cls.registered_protocols[name]
+        obj = super().__new__(cls)
+        cls.registered_protocols[name] = obj
+        return obj
+
+    def __init__(self, name):
+        self.name : str = name
+
+        if name not in self.implemented_protocols.keys():
+            raise Warning(f"Protocol {name} has no known implementation")
+
+    def __repr__(self):
+        return f"BundleProtocol<{self.name}>"
+
+
 class SignalBundle :
     def __init__(self, project, name):
         self.project = project
         self.name : str  = name
+        self.protocol : BundleProtocol = None
         self._signals : list(Signal) = []
 
     def __repr__(self):
@@ -120,6 +143,13 @@ class SignalBundle :
     @property
     def signals(self):
         return [s for s in self._signals]
+
+    def assign_protocol(self, protocol):
+        if self.protocol is None:
+            self.protocol = protocol
+        elif protocol is not self.protocol:
+            raise Exception(f"Bundle {self.name} has conflicting protocols."\
+                            f" Currently has {self.protocol}, but got {protocol}.")
 
     def assign_signal(self, signal):
         signal.parent_bundle = self
@@ -150,16 +180,16 @@ class SignalSpecification :
         self.project = project
         self._bundles: dict[str, SignalBundle] = {}
 
-    def new_bundle(self, bundle_name):
-        bundle = SignalBundle(self.project, bundle_name)
+    def new_bundle(self, bundle_name, protocol : BundleProtocol=None):
+        bundle = SignalBundle(self.project, bundle_name, protocol)
         self._bundles[bundle.name] = bundle
         return bundle
 
-    def get_bundle(self, name, make_if_missing=False):
-        if name in self._bundles:
-            bundle = self._bundles[name]
+    def get_bundle(self, bundle_name, make_if_missing=False):
+        if bundle_name in self._bundles:
+            bundle = self._bundles[bundle_name]
         elif make_if_missing:
-            bundle = self.new_bundle(name)
+            bundle = self.new_bundle(bundle_name)
         else:
             raise Exception("Bundle not found (use make_if_missing if wanting to create an empty new bundle)")
         return bundle
