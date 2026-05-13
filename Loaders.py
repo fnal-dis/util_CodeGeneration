@@ -126,8 +126,8 @@ class SpecLoader:
         "csv": CsvLoader
     }
 
-    def __init__(self, project, filename):
-        self.filename = filename
+    def __init__(self, project):
+        self.filename = project.spec
         self.extension = filename.split(".")[-1]
 
         if self.extension not in self.loaders.keys():

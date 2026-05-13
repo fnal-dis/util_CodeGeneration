@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from SignalModel import Project, SignalSpecification
-from Loaders import ExcelLoader
+from Loaders import SpecLoader
 
 hdl_extensions = ["vhd", "v", "sv"]
 constraints_extensions = ["xdc", "qsf"]
