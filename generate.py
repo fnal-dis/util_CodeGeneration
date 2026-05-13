@@ -24,7 +24,7 @@ project_template_dir = scr_dir / "../templates"
 
 if __name__ == '__main__':
 
-    if sys.argc < 2:
+    if len(sys.argv) < 2:
         project_yaml_path = scr_dir / "../project.yaml"
     else:
         project_yaml_path = Path(sys.argv[1])

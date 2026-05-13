@@ -7,7 +7,8 @@ from pathlib import Path
 
 class Project :
     def __init__(self, yaml_path="./project.yaml"):
-        project_yaml = yaml.safe_load(Path(yaml_path).read_text())
+        yaml_path = Path(yaml_path)
+        project_yaml = yaml.safe_load(yaml_path.read_text())
         self.validate_yaml(project_yaml)
         project_name, project = next(iter(project_yaml.items()))
         self.name = project_name
@@ -16,6 +17,9 @@ class Project :
 
         if "Transceiver" not in self.__dict__.keys():
             self.__setattr__("Transceiver", False)
+
+        self.spec = yaml_path.parent / Path(self.spec)
+
 
     def get_sheets(self):
         d = {}
