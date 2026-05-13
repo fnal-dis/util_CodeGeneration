@@ -38,7 +38,7 @@ class PortSheetLoader(BaseSheetLoader) :
             sig = Signal(port)
             if not sig["No Connect"]:
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
-                if "Protocol" in sig.__attrs__.keys():
+                if "Protocol" in sig.attrs.keys():
                     if sig["Protocol"] is not None:
                         protocol = BundleProtocol(sig["Protocol"])
                         bundle.assign_protocol(protocol)
@@ -72,7 +72,7 @@ class ExcelSheetLoader :
 class ExcelLoader :
     def __init__(self, project):
         self.filename = project.spec
-        self.sheet_dict = get_sheets(project)
+        self.sheet_dict = self.get_sheets(project)
 
     def get_sheets(self, project):
         d = {}
@@ -122,13 +122,13 @@ class CsvLoader:
 class SpecLoader:
 
     loaders = {
-        "xlsx": ExcelLoader,
-        "csv": CsvLoader
+        ".xlsx": ExcelLoader,
+        ".csv": CsvLoader
     }
 
     def __init__(self, project):
         self.filename = project.spec
-        self.extension = self.filename.split(".")[-1]
+        self.extension = self.filename.suffix
 
         if self.extension not in self.loaders.keys():
             raise Exception(f"Unknown extension {self.extension}")
