@@ -139,6 +139,10 @@ class BundleProtocol:
     def __repr__(self):
         return f"BundleProtocol<{self.name}>"
 
+    @property
+    def record_typename(self):
+        return f"t_prot_{self.name.lower()}"
+
 
 class SignalBundle :
     def __init__(self, project, name):
@@ -176,11 +180,14 @@ class SignalBundle :
 
     @property
     def record_typename(self):
-        s = "t_rec_"
-        s += self.project.project_name_short
-        s += "_"
-        s += self.name
-        return s
+        if self.protocol is None:
+            s = "t_rec_"
+            s += self.project.project_name_short
+            s += "_"
+            s += self.name
+            return s
+        else:
+            return self.protocol.record_typename
 
     @property
     def interface_name(self):

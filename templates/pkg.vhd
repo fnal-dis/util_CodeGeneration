@@ -10,7 +10,7 @@ package {{ spec.project.package_name }} is
   subtype {{ spec.project.basetype_name }} is std_logic;
 
   -- <Records>
-{% for bundle in spec.bundles %}
+{% for bundle in spec.bundles if bundle.protocol is none %}
   type {{ bundle.record_typename }} is record
 {% for signal in bundle.signals %}
 {{ signal.name_record.ljust(59).rjust(63) }} : {{ spec.project.basetype_name }};
