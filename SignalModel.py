@@ -6,6 +6,8 @@ import schema
 
 from pathlib import Path
 
+from Protocols import *
+
 class Project :
     def __init__(self, yaml_path="./project.yaml"):
         yaml_path = Path(yaml_path)
@@ -61,6 +63,9 @@ class Signal :
     def __init__(self, attrs : dict):
         #self._attr_schema.validate(attrs)
 
+        self.protocol = None
+        self.protocol_map = None
+
         self.attrs = attrs
         self.name = self.process_name(self.attrs["Net Name"])
         self.bundle_name = self.process_name(self.attrs["Bundle Name"])
@@ -112,9 +117,14 @@ class Signal :
         s = "sig_"
         s += self.project.project_name_short
         s += ".if_"
-        s += self.bundle_name
-        s += "."
-        s += self.name
+        if self.protocol is None:
+            s += self.bundle_name
+            s += "."
+            s += self.name
+        else:
+            s += self.protocol.name
+            s += "."
+            s += self.protocol_map
         s += "_"
         s += self.direction
         return s
@@ -122,7 +132,12 @@ class Signal :
 class BundleProtocol:
 
     registered_protocols = {}
-    implemented_protocols = {"SPI": [], "I2C": [], "ADS9813": []}
+    implemented_protocols =  {
+        "SPI": Prot_SPI,
+        "I2C": Prot_I2C,
+        "SFP": Prot_SFP,
+        "ADS9813": Prot_ADS9813
+    }
 
     def __new__(cls, name):
         if name in cls.registered_protocols:
@@ -130,7 +145,12 @@ class BundleProtocol:
         obj = super().__new__(cls)
         cls.registered_protocols[name] = obj
         if name not in cls.implemented_protocols.keys():
+            cls.impl = None
+            cls.implemented = False
             print(f"Warning: Protocol {name} has no known implementation")
+        else:
+            cls.impl = cls.implemented_protocols[name]
+            cls.implemented = True
         return obj
 
     def __init__(self, name):
@@ -142,6 +162,14 @@ class BundleProtocol:
     @property
     def record_typename(self):
         return f"t_prot_{self.name.lower()}"
+
+    def map_signal(self, signal):
+        for key in self.impl.spec.keys():
+            if key.lower() in signal.name.lower():
+                return key
+            print(key)
+        print(self.impl)
+        raise Exception(f"Signal {signal} for protocol {self} found no match. ")
 
 
 class SignalBundle :
@@ -177,6 +205,9 @@ class SignalBundle :
                 return
 
             self._signals.append(signal)
+            if self.protocol is not None and self.protocol.implemented:
+                signal.protocol = self.protocol
+                signal.protocol_map = self.protocol.map_signal(signal)
 
     @property
     def record_typename(self):

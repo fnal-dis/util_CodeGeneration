@@ -37,6 +37,7 @@ class PortSheetLoader(BaseSheetLoader) :
         for port in spec.to_dict(orient='records'):
             sig = Signal(port)
             if not sig["No Connect"]:
+                # THIS IS WHERE THE PROBLEM IS
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
                 if "Protocol" in sig.attrs.keys():
                     if sig["Protocol"] is not None:
