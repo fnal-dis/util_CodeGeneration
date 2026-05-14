@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from abc import ABC, abstractmethod
-from pandas import read_excel
+from pandas import read_excel, read_csv
 import re
 
-from SignalModel import Signal, SignalBundle, SignalSpecification, Project
+from SignalModel import Signal, SignalBundle, BundleProtocol, SignalSpecification, Project
 
 class BaseSheetLoader(ABC) :
     def __init__(self, target_spec : SignalSpecification, file_name : str, sheet_name : str):
@@ -15,6 +15,8 @@ class BaseSheetLoader(ABC) :
     @abstractmethod
     def load(self):
         pass
+
+
 
 class PortSheetLoader(BaseSheetLoader) :
     def load(self):
@@ -36,7 +38,7 @@ class PortSheetLoader(BaseSheetLoader) :
             sig = Signal(port)
             if not sig["No Connect"]:
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
-                if "Protocol" in sig.__attrs__.keys():
+                if "Protocol" in sig.attrs.keys():
                     if sig["Protocol"] is not None:
                         protocol = BundleProtocol(sig["Protocol"])
                         bundle.assign_protocol(protocol)
@@ -68,15 +70,78 @@ class ExcelSheetLoader :
         loader_class(target_spec, filename, sheet).load()
 
 class ExcelLoader :
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, project):
+        self.filename = project.spec
+        self.sheet_dict = self.get_sheets(project)
 
-    def load(self, target_spec, sheet_dict):
-        for sheet_type, sheet in sheet_dict.items():
+    def get_sheets(self, project):
+        d = {}
+        if "ports_sheet" in project.__dict__:
+            d["Ports"] = project.ports_sheet
+        if "bus_sheet" in project.__dict__:
+            d["Digital Bus"] = project.bus_sheet
+
+        return d
+
+
+    def load(self, target_spec):
+        for sheet_type, sheet in self.sheet_dict.items():
             if sheet_type not in ExcelSheetLoader.valid_sheets:
                 print(f"Loader for sheet {sheet} of type {sheet_type} not found! Skipping")
             else:
                 ExcelSheetLoader.load(target_spec, self.filename, sheet_type, sheet)
+
+class CsvLoader:
+    def __init__(self, project):
+        self.filename = project.spec
+
+    def load(self, target_spec):
+        spec = read_csv(self.filename, dtype=str, na_filter=False, index_col=False)
+
+        #TODO: DRY wrt to PortSheetLoader
+        # Cast boolean columns to correctly assign NA to False
+        boolean_columns = ["Differential", "Transceiver", "No Connect"]
+        for col in boolean_columns:
+            if col in spec:
+                spec[col] = spec[col].astype(bool)
+
+        target = target_spec
+        for port in spec.to_dict(orient='records'):
+            sig = Signal(port)
+            if not sig["No Connect"]:
+                bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
+                bundle.assign_signal(sig)
+                if "Protocol" in sig.attrs.keys():
+                    if sig["Protocol"] is None:
+                        continue
+                    if sig["Protocol"] == '':
+                        continue
+
+                    protocol = BundleProtocol(sig["Protocol"])
+                    bundle.assign_protocol(protocol)
+
+        target_spec.digital_bus = None
+
+
+class SpecLoader:
+
+    loaders = {
+        ".xlsx": ExcelLoader,
+        ".csv": CsvLoader
+    }
+
+    def __init__(self, project):
+        self.filename = project.spec
+        self.extension = self.filename.suffix
+
+        if self.extension not in self.loaders.keys():
+            raise Exception(f"Unknown extension {self.extension}")
+        else:
+            self.loader = self.loaders[self.extension](project)
+
+    def load(self, target_spec):
+        self.loader.load(target_spec)
+
 
 if __name__ == '__main__':
     print("Main is Loaders.py")

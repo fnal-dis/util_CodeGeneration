@@ -21,16 +21,6 @@ class Project :
 
         self.spec = yaml_path.parent / Path(self.spec)
 
-
-    def get_sheets(self):
-        d = {}
-        if "ports_sheet" in self.__dict__:
-            d["Ports"] = self.ports_sheet
-        if "bus_sheet" in self.__dict__:
-            d["Digital Bus"] = self.bus_sheet
-
-        return d
-
     def validate_yaml(self, yaml_dict):
         if len(yaml_dict.keys()) > 1:
             raise Exception("Only 1 project allowed in a YAML")
@@ -139,13 +129,12 @@ class BundleProtocol:
             return cls.registered_protocols[name]
         obj = super().__new__(cls)
         cls.registered_protocols[name] = obj
+        if name not in cls.implemented_protocols.keys():
+            print(f"Warning: Protocol {name} has no known implementation")
         return obj
 
     def __init__(self, name):
         self.name : str = name
-
-        if name not in self.implemented_protocols.keys():
-            raise Warning(f"Protocol {name} has no known implementation")
 
     def __repr__(self):
         return f"BundleProtocol<{self.name}>"
