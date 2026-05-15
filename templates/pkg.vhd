@@ -4,6 +4,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+{% for protocol in spec.protocols %}
+use work.{{ protocol.pkg_name }}.all;
+{% endfor %}
+
 package {{ spec.project.package_name }} is
 
   -- <Base Types>

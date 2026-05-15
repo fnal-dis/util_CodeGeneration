@@ -110,7 +110,10 @@ class Signal :
 
     @property
     def name_record(self):
-        s = self.name
+        if self.protocol is None:
+            s = self.name
+        else:
+            s = self.protocol_map
         s += "_"
         s += self.direction
         return s
@@ -120,13 +123,11 @@ class Signal :
         s = "sig_"
         s += self.project.project_name_short
         s += ".if_"
+        s += self.bundle_name
+        s += "."
         if self.protocol is None:
-            s += self.bundle_name
-            s += "."
             s += self.name
         else:
-            s += self.protocol.name
-            s += "."
             s += self.protocol_map
         s += "_"
         s += self.direction
@@ -139,21 +140,30 @@ class BundleProtocol:
         "SPI": Prot_SPI,
         "I2C": Prot_I2C,
         "SFP": Prot_SFP,
-        "ADS9813": Prot_ADS9813
+        "ADS9813": Prot_ADS9813,
+        "LMK1C110": Prot_LMK1C110
     }
 
     def __new__(cls, name):
         if name in cls.registered_protocols:
-            return cls.registered_protocols[name]
+            v = cls.registered_protocols[name]
+            trace(cls, f"Found {name} at {hex(id(v))}")
+            return v
+
+        print(f"[BundleProtocol] Creating new protocol {name}")
         obj = super().__new__(cls)
         cls.registered_protocols[name] = obj
+
         if name not in cls.implemented_protocols.keys():
-            cls.impl = None
-            cls.implemented = False
-            print(f"Warning: Protocol {name} has no known implementation")
+            raise Exception(f"Protocol {name} has no known implementation")
         else:
-            cls.impl = cls.implemented_protocols[name]
-            cls.implemented = True
+            obj.impl = BundleProtocol.implemented_protocols[name]
+            if  obj.impl.has_module:
+                obj.implemented = True
+            else:
+                print(f"Warning: Protocol {name} has no known module implementation")
+
+        trace(cls, f"Created {name} with impl {obj.impl}")
         return obj
 
     def __init__(self, name):
@@ -166,13 +176,34 @@ class BundleProtocol:
     def record_typename(self):
         return f"t_prot_{self.name.lower()}"
 
+    @property
+    def arr_typename(self):
+        return f"t_arr_prot_{self.name.lower()}"
+
+    @property
+    def pkg_name(self):
+        return f"pkg_{self.name.lower()}"
+
     def map_signal(self, signal):
-        for key in self.impl.spec.keys():
-            if key.lower() in signal.name.lower():
+        print(f"[BundleProtocol] Mapping {signal} to {self}", end="")
+        for key,val  in self.impl.spec.items():
+            if re.search(key, signal.name, re.IGNORECASE):
+                print(f"... Match: {key}")
+                if signal.direction != val.direction:
+                    raise Exception(f"Signal {signal} has conflicting direction "
+                                    f"{signal.direction} for protocol {self}. "
+                                    f"Expected {val.direction}")
                 return key
-            print(key)
-        print(self.impl)
+            trace(self, key)
+        trace(self, self.impl)
         raise Exception(f"Signal {signal} for protocol {self} found no match. ")
+
+    @property
+    def signals(self):
+        L = []
+        for key,val in self.impl.spec.items():
+            L.append(f"{key}_{val.direction}")
+        return L
 
 
 class SignalBundle :
@@ -183,6 +214,9 @@ class SignalBundle :
         self._signals : list(Signal) = []
 
     def __repr__(self):
+        return f"Bundle<{self.name}>"
+
+    def __print__(self):
         s = f"Bundle<{self.name}>:\n"
         for sig in self.signals:
             s += f"\t| {str(sig)}\n"
@@ -194,6 +228,7 @@ class SignalBundle :
 
     def assign_protocol(self, protocol):
         if self.protocol is None:
+            trace(self, f"Assigned protocol {protocol} to {self}")
             self.protocol = protocol
         elif protocol is not self.protocol:
             raise Exception(f"Bundle {self.name} has conflicting protocols."\
@@ -208,7 +243,12 @@ class SignalBundle :
                 return
 
             self._signals.append(signal)
-            if self.protocol is not None and self.protocol.implemented:
+            trace(self, f"Bundle: {self}")
+            trace(self, f"Signal: {signal}")
+            trace(self, f"Protocol: {self.protocol}")
+            #if self.protocol is not None:
+            #    print(f"[SignalBundle] Impl: {self.protocol.impl}")
+            if self.protocol is not None:
                 signal.protocol = self.protocol
                 signal.protocol_map = self.protocol.map_signal(signal)
 
@@ -247,6 +287,10 @@ class SignalSpecification :
         else:
             raise Exception("Bundle not found (use make_if_missing if wanting to create an empty new bundle)")
         return bundle
+
+    @property
+    def protocols (self):
+        return list(BundleProtocol.registered_protocols.values())
 
     @property
     def signals (self):
