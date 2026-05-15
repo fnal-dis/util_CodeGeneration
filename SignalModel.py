@@ -7,6 +7,9 @@ import schema
 from pathlib import Path
 
 from Protocols import *
+from Debug import trace, enable_trace
+
+#enable_trace()
 
 class Project :
     def __init__(self, yaml_path="./project.yaml"):
