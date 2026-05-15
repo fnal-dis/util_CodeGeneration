@@ -48,8 +48,8 @@ if __name__ == '__main__':
 
         if not path.is_file():
             continue
-        if path.suffix in [".jinja", ".j2"]:
-            print(path + " skipped")
+        if path.suffix in ["", ".jinja", ".j2"]:
+            print(str(path) + " skipped")
             continue
 
         print(path.name)
@@ -94,6 +94,22 @@ if __name__ == '__main__':
 
             templates[template.name] = (template, new_path, new_filename)
 
+
+    for protocol in spec.protocols:
+        folder = Path("src/hdl/_AUTOGEN")
+        folder.mkdir(parents=True, exist_ok=True)
+
+        new_filename = f"pkg_prot_{protocol.name}.vhd"
+        new_path = folder / new_filename
+        path = template_dir / "protocol_pkg"
+
+        template = env.get_template(path.name)
+        new_path.write_text(
+            template.render(
+                protocol=protocol,
+                file_name=new_filename
+            )
+        )
 
     for template, new_path, new_filename in templates.values():
         new_path.write_text(

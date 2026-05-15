@@ -108,17 +108,20 @@ class CsvLoader:
         target = target_spec
         for port in spec.to_dict(orient='records'):
             sig = Signal(port)
+            #print(f"\n\n[CsvLoader] Signal: {sig}")
             if not sig["No Connect"]:
+                # THIS IS WHERE THE PROBLEM IS
                 bundle = target.get_bundle(sig.bundle_name, make_if_missing=True)
-                bundle.assign_signal(sig)
                 if "Protocol" in sig.attrs.keys():
-                    if sig["Protocol"] is None:
-                        continue
-                    if sig["Protocol"] == '':
+                    if sig["Protocol"] is None or sig["Protocol"] == '':
+                        bundle.assign_signal(sig)
                         continue
 
+                    #print(f"[CsvLoader] Bundle: {bundle}")
+                    #print(f"[CsvLoader] Bundle: {sig['Protocol']}")
                     protocol = BundleProtocol(sig["Protocol"])
                     bundle.assign_protocol(protocol)
+                    bundle.assign_signal(sig)
 
         target_spec.digital_bus = None
 
