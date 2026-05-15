@@ -26,7 +26,7 @@ class Prot_ADS9813(Protocol):
         'OUT4': ProtocolSignal(direction='in', width=1)
     }
     module_outputs = [
-        Axis(tdata=16)
+        Axis(tdata=192)
     ]
 
 
