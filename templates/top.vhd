@@ -100,7 +100,7 @@ ibuf_{{ port.name }} : IBUFDS
 -- Differential input buffers (Transceivers)
 {% for port in spec.all_signals_differential if port.direction == 'in'%}
 {% if port.is_transceiver %}
-ibuf_{{ port.name }} : IBUFDS_GTE2
+ibuf_{{ port.name }} : IBUFDS_GTE4
    port map(
      o  => {{ port.name_signalinbundle }},
      odiv2 => open,
