@@ -38,7 +38,7 @@ package {{ protocol.pkg_name }} is
 
   type {{ protocol.record_typename }} is record
 {% for sig in protocol.signals %}
-    {{ sig }} : std_logic;
+    {{ sig.name }}_{{sig.direction}} : {{ sig.vhdl_type }};
 {% endfor %}
   end record;
 

@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 
 class ProtocolSignal:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    def __init__(self, name, width, direction):
+        self.name = name
+        self.width = width
+        self.direction = direction
+
+    def __repr__(self):
+        return self.name
+
+    @property
+    def vhdl_type(self):
+        if self.width == 1:
+            return 'std_logic'
+        elif self.width > 1:
+            return f'std_logic_vector([self.width-1] downto 0)'
+        else:
+            return f'std_logic_vector'
+
 
 class Axis:
 
@@ -13,50 +28,49 @@ class Axis:
 
 class Protocol:
     has_module = False
-    spec = {}
     module_outputs = []
 
 class Prot_ADS9813(Protocol):
-    spec = {
-        'DCLK': ProtocolSignal(direction='in', width=1),
-        'FCLK': ProtocolSignal(direction='in', width=1),
-        'OUT1': ProtocolSignal(direction='in', width=1),
-        'OUT2': ProtocolSignal(direction='in', width=1),
-        'OUT3': ProtocolSignal(direction='in', width=1),
-        'OUT4': ProtocolSignal(direction='in', width=1)
-    }
+    signals = [
+        ProtocolSignal('DCLK', direction='in', width=1),
+        ProtocolSignal('FCLK', direction='in', width=1),
+        ProtocolSignal('OUT1', direction='in', width=1),
+        ProtocolSignal('OUT2', direction='in', width=1),
+        ProtocolSignal('OUT3', direction='in', width=1),
+        ProtocolSignal('OUT4', direction='in', width=1)
+    ]
     module_outputs = [
         Axis(tdata=192)
     ]
 
 
 class Prot_SPI(Protocol):
-    spec = {
-        'EN': ProtocolSignal(direction='inout', width=1),
-        'SCLK': ProtocolSignal(direction='inout', width=1),
-        'CS': ProtocolSignal(direction='inout', width=1),
-        'MOSI': ProtocolSignal(direction='inout', width=1),
-        'MISO': ProtocolSignal(direction='inout', width=1)
-    }
+    signals = [
+    ProtocolSignal(    'EN', direction='inout', width=1),
+        ProtocolSignal('SCLK', direction='inout', width=1),
+        ProtocolSignal('CS', direction='inout', width=1),
+        ProtocolSignal('MOSI', direction='inout', width=1),
+        ProtocolSignal('MISO', direction='inout', width=1)
+    ]
 
 class Prot_I2C(Protocol):
-    spec = {
-        'SDA': ProtocolSignal(direction='inout', width=1),
-        'SCL': ProtocolSignal(direction='inout', width=1),
-    }
+    signals = [
+        ProtocolSignal('SDA', direction='inout', width=1),
+        ProtocolSignal('SCL', direction='inout', width=1),
+    ]
 
 class Prot_SFP(Protocol):
-    spec = {
-        'SFP_RX': ProtocolSignal(direction='in', width=1),
-        'SFP_TX': ProtocolSignal(direction='out', width=1),
-        'Mod_Abs': ProtocolSignal(direction='in', width=1),
-        'Rx_Los': ProtocolSignal(direction='in', width=1),
-        'Tx_Dis': ProtocolSignal(direction='in', width=1),
-        'Tx_Fault': ProtocolSignal(direction='out', width=1),
-    }
+    signals = [
+        ProtocolSignal('SFP_RX', direction='in', width=1),
+        ProtocolSignal('SFP_TX', direction='out', width=1),
+        ProtocolSignal('Mod_Abs', direction='in', width=1),
+        ProtocolSignal('Rx_Los', direction='in', width=1),
+        ProtocolSignal('Tx_Dis', direction='in', width=1),
+        ProtocolSignal('Tx_Fault', direction='out', width=1),
+    ]
 
 class Prot_LMK1C110(Protocol):
-    spec = {
-        'Sync': ProtocolSignal(direction='out', width=1),
-        'En': ProtocolSignal(direction='out', width=1),
-    }
+    signals = [
+        ProtocolSignal('Sync', direction='out', width=1),
+        ProtocolSignal('En', direction='out', width=1),
+    ]

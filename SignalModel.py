@@ -70,6 +70,7 @@ class Signal :
         self.protocol_map = None
 
         self.attrs = attrs
+        self.width = 1 # Todo: post-process based on repeated indices
         self.name = self.process_name(self.attrs["Net Name"])
         self.bundle_name = self.process_name(self.attrs["Bundle Name"])
         self.direction = self.attrs["DIR"].lower()
@@ -113,7 +114,7 @@ class Signal :
         if self.protocol is None:
             s = self.name
         else:
-            s = self.protocol_map
+            s = self.protocol_map.name
         s += "_"
         s += self.direction
         return s
@@ -128,7 +129,7 @@ class Signal :
         if self.protocol is None:
             s += self.name
         else:
-            s += self.protocol_map
+            s += self.protocol_map.name
         s += "_"
         s += self.direction
         return s
@@ -158,6 +159,8 @@ class BundleProtocol:
             raise Exception(f"Protocol {name} has no known implementation")
         else:
             obj.impl = BundleProtocol.implemented_protocols[name]
+            print("Protocol signals:")
+            print(obj.impl.signals)
             if  obj.impl.has_module:
                 obj.implemented = True
             else:
@@ -186,25 +189,22 @@ class BundleProtocol:
 
     def map_signal(self, signal):
         print(f"[BundleProtocol] Mapping {signal} to {self}", end="")
-        for key,val  in self.impl.spec.items():
+        for candidate_sig in self.impl.signals:
+            key = candidate_sig.name
             if re.search(key, signal.name, re.IGNORECASE):
                 print(f"... Match: {key}")
-                if signal.direction != val.direction:
+                if signal.direction != candidate_sig.direction:
                     raise Exception(f"Signal {signal} has conflicting direction "
                                     f"{signal.direction} for protocol {self}. "
-                                    f"Expected {val.direction}")
-                return key
+                                    f"Expected {candidate_sig.direction}")
+                return candidate_sig
             trace(self, key)
         trace(self, self.impl)
         raise Exception(f"Signal {signal} for protocol {self} found no match. ")
 
     @property
     def signals(self):
-        L = []
-        for key,val in self.impl.spec.items():
-            L.append(f"{key}_{val.direction}")
-        return L
-
+        return self.impl.signals
 
 class SignalBundle :
     def __init__(self, project, name):
