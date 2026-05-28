@@ -57,7 +57,7 @@ if __name__ == '__main__':
         print(f"Found template {template.name}")
 
         ext = path.suffix.lstrip(".")
-        folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+        folder = Path("fw/src") / map_extension(ext) / "_AUTOGEN"
         folder.mkdir(parents=True, exist_ok=True)
 
         new_filename = path.stem + f"_{project.name}." + ext
@@ -84,7 +84,7 @@ if __name__ == '__main__':
             print(f"Found project-specific template {template.name}")
 
             ext = path.suffixes[0].lstrip(".")
-            folder = Path("src") / map_extension(ext) / "_AUTOGEN"
+            folder = Path("fw/src") / map_extension(ext) / "_AUTOGEN"
             folder.mkdir(parents=True, exist_ok=True)
 
             new_filename = path.with_suffix('').stem + f"_{project.name}." + ext
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
 
     for protocol in spec.protocols:
-        folder = Path("src/hdl/_AUTOGEN")
+        folder = Path("fw/src/hdl/_AUTOGEN")
         folder.mkdir(parents=True, exist_ok=True)
 
         new_filename = f"pkg_prot_{protocol.name}.vhd"
