@@ -2,23 +2,23 @@
 
 import re
 import yaml
-import schema
 
 from pathlib import Path
 
 from Protocols import *
 from Debug import trace, enable_trace
 
-#enable_trace()
+# enable_trace()
 
-class Project :
+
+class Project:
     def __init__(self, yaml_path="./project.yaml"):
         yaml_path = Path(yaml_path)
         project_yaml = yaml.safe_load(yaml_path.read_text())
         self.validate_yaml(project_yaml)
         project_name, project = next(iter(project_yaml.items()))
         self.name = project_name
-        for attr,val in project.items():
+        for attr, val in project.items():
             self.__setattr__(attr, val)
 
         if "Transceiver" not in self.__dict__.keys():
@@ -46,25 +46,10 @@ class Project :
     def package_name(self):
         return f"pkg_{self.name}"
 
-class Signal :
 
-    _attr_schema = schema.Schema(
-        {
-            "Net Name": str,
-            "Bundle Name": str,
-            "FPGA Pin": str,
-            "IO Standard": str,
-            "Direction": lambda s: s in ("in", "out", "inout"),
-            "Net Name": str,
-            "Differential": bool,
-            "Transceiver": bool,
-            "No Connect": bool,
-            schema.Optional("Protocol"): str
-        }
-    )
+class Signal:
 
-    def __init__(self, attrs : dict):
-        #self._attr_schema.validate(attrs)
+    def __init__(self, attrs: dict):
 
         self.protocol = None
         self.protocol_map = None
@@ -76,7 +61,7 @@ class Signal :
         self.pin = self.attrs["FPGA Pin"]
         self.std = self.attrs["IO Standard"]
 
-    #TODO: deprecate usage of this in the templates
+    # TODO: deprecate usage of this in the templates
     def __getitem__(self, key):
         return self.attrs[key]
 
@@ -85,11 +70,11 @@ class Signal :
 
     def process_name(self, name_in):
         name = name_in
-        name = name.replace('(', '_').title()
-        name = re.sub(r'[\W]+', '', name)
-        name = re.sub(r'^([0-9])', r'x\1', name)
+        name = name.replace("(", "_").title()
+        name = re.sub(r"[\W]+", "", name)
+        name = re.sub(r"^([0-9])", r"x\1", name)
         if self.is_differential:
-            name = name.replace("_P",  "")
+            name = name.replace("_P", "")
         return name
 
     @property
@@ -133,15 +118,16 @@ class Signal :
         s += self.direction
         return s
 
+
 class BundleProtocol:
 
     registered_protocols = {}
-    implemented_protocols =  {
+    implemented_protocols = {
         "SPI": Prot_SPI,
         "I2C": Prot_I2C,
         "SFP": Prot_SFP,
         "ADS9813": Prot_ADS9813,
-        "LMK1C110": Prot_LMK1C110
+        "LMK1C110": Prot_LMK1C110,
     }
 
     def __new__(cls, name):
@@ -158,7 +144,7 @@ class BundleProtocol:
             raise Exception(f"Protocol {name} has no known implementation")
         else:
             obj.impl = BundleProtocol.implemented_protocols[name]
-            if  obj.impl.has_module:
+            if obj.impl.has_module:
                 obj.implemented = True
             else:
                 print(f"Warning: Protocol {name} has no known module implementation")
@@ -167,7 +153,7 @@ class BundleProtocol:
         return obj
 
     def __init__(self, name):
-        self.name : str = name
+        self.name: str = name
 
     def __repr__(self):
         return f"BundleProtocol<{self.name}>"
@@ -186,13 +172,15 @@ class BundleProtocol:
 
     def map_signal(self, signal):
         print(f"[BundleProtocol] Mapping {signal} to {self}", end="")
-        for key,val  in self.impl.spec.items():
+        for key, val in self.impl.spec.items():
             if re.search(key, signal.name, re.IGNORECASE):
                 print(f"... Match: {key}")
                 if signal.direction != val.direction:
-                    raise Exception(f"Signal {signal} has conflicting direction "
-                                    f"{signal.direction} for protocol {self}. "
-                                    f"Expected {val.direction}")
+                    raise Exception(
+                        f"Signal {signal} has conflicting direction "
+                        f"{signal.direction} for protocol {self}. "
+                        f"Expected {val.direction}"
+                    )
                 return key
             trace(self, key)
         trace(self, self.impl)
@@ -201,17 +189,17 @@ class BundleProtocol:
     @property
     def signals(self):
         L = []
-        for key,val in self.impl.spec.items():
+        for key, val in self.impl.spec.items():
             L.append(f"{key}_{val.direction}")
         return L
 
 
-class SignalBundle :
+class SignalBundle:
     def __init__(self, project, name):
         self.project = project
-        self.name : str  = name
-        self.protocol : BundleProtocol = None
-        self._signals : list(Signal) = []
+        self.name: str = name
+        self.protocol: BundleProtocol = None
+        self._signals: list(Signal) = []
 
     def __repr__(self):
         return f"Bundle<{self.name}>"
@@ -231,8 +219,10 @@ class SignalBundle :
             trace(self, f"Assigned protocol {protocol} to {self}")
             self.protocol = protocol
         elif protocol is not self.protocol:
-            raise Exception(f"Bundle {self.name} has conflicting protocols."\
-                            f" Currently has {self.protocol}, but got {protocol}.")
+            raise Exception(
+                f"Bundle {self.name} has conflicting protocols."
+                f" Currently has {self.protocol}, but got {protocol}."
+            )
 
     def assign_signal(self, signal):
         signal.parent_bundle = self
@@ -246,7 +236,7 @@ class SignalBundle :
             trace(self, f"Bundle: {self}")
             trace(self, f"Signal: {signal}")
             trace(self, f"Protocol: {self.protocol}")
-            #if self.protocol is not None:
+            # if self.protocol is not None:
             #    print(f"[SignalBundle] Impl: {self.protocol.impl}")
             if self.protocol is not None:
                 signal.protocol = self.protocol
@@ -269,13 +259,14 @@ class SignalBundle :
         s += self.name
         return s
 
-class SignalSpecification :
-    def __init__(self, project : Project):
+
+class SignalSpecification:
+    def __init__(self, project: Project):
         self.project = project
         self._bundles: dict[str, SignalBundle] = {}
 
     def new_bundle(self, bundle_name):
-        bundle = SignalBundle(self.project, bundle_name )
+        bundle = SignalBundle(self.project, bundle_name)
         self._bundles[bundle.name] = bundle
         return bundle
 
@@ -285,21 +276,23 @@ class SignalSpecification :
         elif make_if_missing:
             bundle = self.new_bundle(bundle_name)
         else:
-            raise Exception("Bundle not found (use make_if_missing if wanting to create an empty new bundle)")
+            raise Exception(
+                "Bundle not found (use make_if_missing if wanting to create an empty new bundle)"
+            )
         return bundle
 
     @property
-    def protocols (self):
+    def protocols(self):
         return list(BundleProtocol.registered_protocols.values())
 
     @property
-    def signals (self):
+    def signals(self):
         for bundle in self.bundles:
             for sig in bundle.signals:
                 yield sig
 
     @property
-    def bundles (self):
+    def bundles(self):
         return self._bundles.values()
 
     def signal_sort(fun):
@@ -308,19 +301,20 @@ class SignalSpecification :
             out.sort(key=lambda x: x.name)
             out.sort(key=lambda x: x.direction)
             return out
+
         return wrapper
 
     @property
     @signal_sort
-    def all_signals_singleended (self):
+    def all_signals_singleended(self):
         return [s for s in self.signals if s.is_singleended]
 
     @property
     @signal_sort
-    def all_signals_differential (self):
+    def all_signals_differential(self):
         return [s for s in self.signals if s.is_differential]
 
     @property
     @signal_sort
-    def all_signals_transceiver (self):
+    def all_signals_transceiver(self):
         return [s for s in self.signals if s.is_transceiver]
