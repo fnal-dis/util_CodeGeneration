@@ -102,7 +102,7 @@ ibuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : IBUFDS
 {% for port in spec.all_signals_differential if port.direction == 'in'%}
 {% if port.is_transceiver %}
 {% set dup_name = (spec.all_signals_differential | selectattr('name', 'equalto', port.name) | list | length) > 1 %}
-ibuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : IBUFDS_GTE2
+ibuf_{% if dup_name %}{{ port.bundle_name }}_{% endif %}{{ port.name }} : IBUFDS_GTE4
    port map(
      o  => {{ port.name_signalinbundle }},
      odiv2 => open,
